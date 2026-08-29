@@ -30,7 +30,9 @@
       "segment": "plant_manager",
       "is_icp": true,
       "reached": true,
-      "would_click": false
+      "would_click": false,
+      "quote": "Still the same '#1' with nothing behind it.",
+      "reason": "Copy is unchanged, so the objection stands."
     },
     {
       "id": "anika",
@@ -38,7 +40,9 @@
       "segment": "plant_manager",
       "is_icp": true,
       "reached": true,
-      "would_click": false
+      "would_click": false,
+      "quote": "Still no price. Same page, same skip.",
+      "reason": "The missing price remains the blocker."
     },
     {
       "id": "mateo",
@@ -46,7 +50,9 @@
       "segment": "plant_manager",
       "is_icp": true,
       "reached": true,
-      "would_click": false
+      "would_click": false,
+      "quote": "Still that unsourced '#1'.",
+      "reason": "The unsourced ranking claim is still there."
     },
     {
       "id": "jules",

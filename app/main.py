@@ -7,10 +7,10 @@ from pydantic import BaseModel as PydBaseModel
 
 from app.agents.critic import cached_critic_summary, critic_summary
 from app.agents.optimizer import optimize_copy, tighten_targeting
-from app.agents.personas import evaluate_persona
+from app.agents.personas import cached_verdict, evaluate_persona
 from app.impressions import sample_impressions, targeting_accuracy
 from app.llm import CacheFallback
-from app.models import Campaign
+from app.models import Campaign, CompanySize, Creative, Industry, LandingPage, Region, Role, Targeting
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,7 +34,7 @@ def load_round(round_number: int, use_cache: bool = False) -> dict:
         campaign = tighten_targeting(round_one)
     elif round_number == 3:
         round_two = Campaign.model_validate(read_fixture(2)["campaign"])
-        campaign = optimize_copy(round_two, campaign)
+        campaign = optimize_copy(round_two, campaign, use_cache=use_cache)
 
     campaign_data = campaign.model_dump(mode="json")
     impressions = sample_impressions(campaign.targeting)
@@ -51,7 +51,7 @@ def load_round(round_number: int, use_cache: bool = False) -> dict:
     evaluated_personas = []
     for fixture_persona in payload["personas"]:
         try:
-            evaluation = evaluate_persona(fixture_persona, campaign_data, round_number)
+            evaluation = evaluate_persona(fixture_persona, campaign_data, round_number, use_cache=use_cache)
             evaluated_personas.append({**fixture_persona, **evaluation})
             if not evaluation.get("reached"):
                 feed.append(f"Persona: {fixture_persona['name']} not reached — skipped")
@@ -69,7 +69,7 @@ def load_round(round_number: int, use_cache: bool = False) -> dict:
                 feed.append(f"Persona: {fixture_persona['name']} (cached) — Would not click")
 
     try:
-        summary = critic_summary(accuracy)
+        summary = critic_summary(accuracy, use_cache=use_cache)
         feed.append(f"Critic: {summary}")
     except CacheFallback:
         summary = cached_critic_summary(accuracy)
@@ -193,6 +193,33 @@ SAMPLE_BRIEF = (
 )
 
 
+def build_custom_campaign(brief: str) -> Campaign:
+    words = [w for w in brief.replace("\n", " ").split(" ") if w]
+    company = words[0].strip(",.!?:;") if words else "Your product"
+    first_sentence = brief.split(".")[0].strip().strip(",.!?:;")
+    headline = first_sentence if first_sentence else f"{company} — see it before it costs you"
+
+    targeting = Targeting(
+        industries=[Industry.MANUFACTURING, Industry.TECHNOLOGY],
+        roles=[Role.PLANT_MANAGER, Role.OPERATIONS_MANAGER, Role.ENGINEER],
+        company_sizes=[CompanySize.SMALL, CompanySize.MEDIUM, CompanySize.LARGE],
+        regions=[Region.EUROPE, Region.NORTH_AMERICA],
+    )
+    return Campaign(
+        company=company,
+        targeting=targeting,
+        ad=Creative(headline=headline, body=brief.strip(), cta="Learn more"),
+        page=LandingPage(
+            headline=headline,
+            body=brief.strip(),
+            bullets=[],
+            proof=None,
+            cta="Learn more",
+            price=None,
+        ),
+    )
+
+
 @app.post("/api/custom")
 def custom_campaign(req: BriefRequest, use_cache: bool = False) -> dict:
     brief = req.brief.strip()
@@ -206,6 +233,41 @@ def custom_campaign(req: BriefRequest, use_cache: bool = False) -> dict:
             "error": "Brief is too short — add at least a product name and target buyer.",
             "sample": SAMPLE_BRIEF,
         }
-    # For now, custom briefs load the Northline demo as a starting point.
-    # A future slice can wire this to the LLM campaign generator.
-    return load_round(1, use_cache=use_cache)
+
+    campaign = build_custom_campaign(brief)
+    campaign_data = campaign.model_dump(mode="json")
+    impressions = sample_impressions(campaign.targeting)
+    accuracy = targeting_accuracy(impressions)
+
+    # Reuse the persona profiles to judge the custom campaign, deriving
+    # verdicts from the custom copy rather than the Northline fixture.
+    base = read_fixture(1)
+    personas = []
+    for fixture_persona in base["personas"]:
+        try:
+            evaluation = evaluate_persona(fixture_persona, campaign_data, 1, use_cache=use_cache)
+            personas.append({**fixture_persona, **evaluation})
+        except CacheFallback:
+            personas.append({**fixture_persona, **cached_verdict(fixture_persona, campaign_data)})
+
+    try:
+        summary = critic_summary(accuracy, use_cache=use_cache)
+    except CacheFallback:
+        summary = cached_critic_summary(accuracy)
+
+    purchase = f"{sum(1 for p in personas if p.get('is_icp') and p.get('reached') and p.get('would_click'))}/{sum(1 for p in personas if p.get('is_icp') and p.get('reached'))}"
+    return {
+        "round": 0,
+        "mode": "simulated",
+        "campaign": campaign_data,
+        "personas": personas,
+        "impressions": impressions,
+        "targeting_accuracy": accuracy,
+        "icp_purchase_rate": purchase,
+        "critic_summary": summary,
+        "agent_feed": [
+            f"Sampler: generated {len(impressions)} simulated impressions (seed 42)",
+            f"Sampler: {accuracy}% targeting accuracy",
+            f"Brief: built a custom campaign for '{campaign.company}'",
+        ],
+    }

@@ -30,7 +30,7 @@ PERSONAS = {
 }
 
 
-def evaluate_persona(persona: dict, campaign: dict, round_number: int) -> dict:
+def evaluate_persona(persona: dict, campaign: dict, round_number: int, use_cache: bool = False) -> dict:
     persona_id = persona["id"]
     if not persona["reached"]:
         return {
@@ -72,6 +72,7 @@ def evaluate_persona(persona: dict, campaign: dict, round_number: int) -> dict:
                 },
             }
         ),
+        use_cache=use_cache,
     )
 
     if result.get("verdict") not in {"buy", "ignore", "object"}:
@@ -86,4 +87,103 @@ def evaluate_persona(persona: dict, campaign: dict, round_number: int) -> dict:
         "would_click": result["would_click"],
         "quote": str(result.get("quote", "")),
         "reason": str(result.get("reason", "")),
+    }
+
+
+def cached_verdict(persona: dict, campaign: dict) -> dict:
+    """Deterministic verdict used when the LLM is unavailable (USE_CACHE or no key).
+
+    Derives each ICP persona's reaction from the campaign copy actually present,
+    so cards stay coherent for custom briefs as well as the Northline fixture.
+    """
+    persona_id = persona["id"]
+    if not persona.get("reached", True):
+        return {"id": persona_id, "reached": False, "status": "Not reached this round"}
+
+    if persona_id == "jules":
+        return {
+            "id": persona_id,
+            "reached": True,
+            "verdict": "buy",
+            "would_click": True,
+            "quote": "It sounds like a hot new operating system.",
+            "reason": "Jules is curious about the branding but is not the B2B buyer.",
+        }
+
+    copy = " ".join(
+        [
+            campaign.get("ad", {}).get("headline", ""),
+            campaign.get("ad", {}).get("body", ""),
+            campaign.get("page", {}).get("headline", ""),
+            campaign.get("page", {}).get("body", ""),
+            " ".join(campaign.get("page", {}).get("bullets", [])),
+        ]
+    ).lower()
+    has_price = bool(campaign.get("page", {}).get("price"))
+    has_ranking = "#1" in copy or "best in the world" in copy
+
+    if persona_id == "klaus":
+        if has_ranking or not has_price:
+            return {
+                "id": persona_id,
+                "reached": True,
+                "verdict": "object",
+                "would_click": False,
+                "quote": "A slogan with no numbers behind it tells me nothing.",
+                "reason": "Objects to claims without proof and to a missing price.",
+            }
+        return {
+            "id": persona_id,
+            "reached": True,
+            "verdict": "buy",
+            "would_click": True,
+            "quote": "A number I can act on. I'd book a demo.",
+            "reason": "Proof and price are present, so the objection clears.",
+        }
+
+    if persona_id == "anika":
+        if not has_price:
+            return {
+                "id": persona_id,
+                "reached": True,
+                "verdict": "ignore",
+                "would_click": False,
+                "quote": "No price anywhere — I'm not clicking just to find out.",
+                "reason": "Will not click when the price is missing.",
+            }
+        return {
+            "id": persona_id,
+            "reached": True,
+            "verdict": "buy",
+            "would_click": True,
+            "quote": "The price is right there. Fine, show me.",
+            "reason": "The price is present, so the blocker is gone.",
+        }
+
+    if persona_id == "mateo":
+        if has_ranking:
+            return {
+                "id": persona_id,
+                "reached": True,
+                "verdict": "object",
+                "would_click": False,
+                "quote": "Who says that? There's no source.",
+                "reason": "Rejects an unsourced ranking claim.",
+            }
+        return {
+            "id": persona_id,
+            "reached": True,
+            "verdict": "buy",
+            "would_click": True,
+            "quote": "No fake claims, just what it does. Yes.",
+            "reason": "No unsourced ranking claim in the copy.",
+        }
+
+    return {
+        "id": persona_id,
+        "reached": True,
+        "verdict": "ignore",
+        "would_click": False,
+        "quote": "Not sure this is for me.",
+        "reason": "No strong objection, but nothing compelling either.",
     }

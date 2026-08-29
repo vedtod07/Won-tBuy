@@ -30,7 +30,9 @@
       "segment": "plant_manager",
       "is_icp": true,
       "reached": true,
-      "would_click": false
+      "would_click": false,
+      "quote": "A '#1' with no number behind it tells me nothing.",
+      "reason": "Objects to slogans without proof — and there is no price on the page."
     },
     {
       "id": "anika",
@@ -38,7 +40,9 @@
       "segment": "plant_manager",
       "is_icp": true,
       "reached": true,
-      "would_click": false
+      "would_click": false,
+      "quote": "No price anywhere. I am not clicking just to find out.",
+      "reason": "Will not click when the price is missing."
     },
     {
       "id": "mateo",
@@ -46,7 +50,9 @@
       "segment": "plant_manager",
       "is_icp": true,
       "reached": true,
-      "would_click": false
+      "would_click": false,
+      "quote": "Who says you are #1? There is no source.",
+      "reason": "Rejects an unsourced '#1' claim."
     },
     {
       "id": "jules",
@@ -54,7 +60,9 @@
       "segment": "student",
       "is_icp": false,
       "reached": true,
-      "would_click": true
+      "would_click": true,
+      "quote": "Wait, this is a hot OS for my side hustle.",
+      "reason": "Thinks the factory dashboard is a consumer app — clicks, but will never buy."
     }
   ]
 }

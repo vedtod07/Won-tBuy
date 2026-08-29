@@ -20,7 +20,7 @@ python -m pip install -r requirements.txt
 Start the app:
 
 ```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
 ```
 
-Then open [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
+Then open [http://127.0.0.1:8001/](http://127.0.0.1:8001/).

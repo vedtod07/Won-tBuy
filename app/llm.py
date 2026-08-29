@@ -8,10 +8,15 @@ class CacheFallback(RuntimeError):
     pass
 
 
-def chat_json(system: str, user: str) -> dict:
+def use_cache_requested(use_cache: bool = False) -> bool:
+    if use_cache:
+        return True
+    return os.getenv("USE_CACHE", "0").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def chat_json(system: str, user: str, use_cache: bool = False) -> dict:
     api_key = os.getenv("LLM_API_KEY")
-    use_cache = os.getenv("USE_CACHE", "0").strip().lower() in {"1", "true", "yes", "on"}
-    if use_cache or not api_key:
+    if use_cache_requested(use_cache) or not api_key:
         raise CacheFallback("Cached fixtures requested or LLM_API_KEY is missing")
 
     request = Request(

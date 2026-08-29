@@ -39,7 +39,9 @@
       "segment": "plant_manager",
       "is_icp": true,
       "reached": true,
-      "would_click": true
+      "would_click": true,
+      "quote": "Finally — a real number. €199 and 40 plants. Book the demo.",
+      "reason": "Price and proof are now on the page."
     },
     {
       "id": "anika",
@@ -47,7 +49,9 @@
       "segment": "plant_manager",
       "is_icp": true,
       "reached": true,
-      "would_click": true
+      "would_click": true,
+      "quote": "€199/mo, stated clearly. I would click.",
+      "reason": "The missing price was the blocker; now it is fixed."
     },
     {
       "id": "mateo",
@@ -55,7 +59,9 @@
       "segment": "plant_manager",
       "is_icp": true,
       "reached": true,
-      "would_click": true
+      "would_click": true,
+      "quote": "No fake '#1', real proof instead. Yes.",
+      "reason": "The unsourced ranking claim is gone."
     },
     {
       "id": "jules",

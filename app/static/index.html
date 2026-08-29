@@ -48,6 +48,7 @@
     .persona strong { display: block; margin-bottom: .35rem; font-size: 1.25rem; }
     .persona .verdict { margin-top: 1rem; font-weight: 800; color: var(--danger); }
     .persona .click { color: var(--success); }
+    .persona .quote { font-style: italic; color: var(--text); margin: .6rem 0 .3rem; }
     .persona.jules-alert { border: 2px solid var(--warning); background: linear-gradient(135deg, #3c3217, #211d2b); box-shadow: 0 0 0 4px rgb(246 201 69 / 12%); transform: translateY(-4px); }
     .persona.jules-alert::before { content: "TARGETING LEAK"; position: absolute; top: -.75rem; right: .8rem; padding: .3rem .55rem; border-radius: .35rem; background: var(--warning); color: #211b00; font-size: .7rem; font-weight: 900; letter-spacing: .08em; }
     .status { color: var(--warning); font-weight: 800; }
@@ -140,6 +141,7 @@
           <strong>${persona.name}</strong>
           <span>${label(persona.segment)}</span>
           ${verdict}
+          ${persona.quote ? `<p class="quote">“${persona.quote}”</p>` : ''}
           ${persona.reason ? `<p>${persona.reason}</p>` : ''}
         </article>`;
     }
@@ -214,9 +216,13 @@
           </article>`
         : '';
 
+      const feedSection = agentFeed
+        ? `<section class="card"><div class="eyebrow section-title">Agent feed</div><ul class="feed">${agentFeed.map((line) => `<li>${line}</li>`).join('')}</ul></section>`
+        : '';
+
       dashboard.innerHTML = `
         <section class="card">
-          <div class="eyebrow">Round ${round} · ${campaign.company}</div>
+          <div class="eyebrow">${round === 0 ? 'Custom campaign' : `Round ${round}`} · ${campaign.company}</div>
           <h2 class="section-title">Paid targeting</h2>
           <div class="chips">${renderTargeting(campaign.targeting)}</div>
         </section>
@@ -232,6 +238,7 @@
           </article>
         </section>
         ${criticSummary ? `<section class="card"><div class="eyebrow">Funnel critic</div><p>${criticSummary}</p></section>` : ''}
+        ${feedSection}
         <section class="campaign-grid">
           <article class="card preview">
             <div class="preview-copy">
@@ -257,8 +264,7 @@
         <section>
           <div class="eyebrow section-title">Persona verdicts</div>
           <div class="personas">${personas.map(renderPersona).join('')}</div>
-        </section>
-        ${agentFeed ? `<section class="card"><div class="eyebrow section-title">Agent feed</div><ul class="feed">${agentFeed.map((line) => `<li>${line}</li>`).join('')}</ul></section>` : ''}`;
+        </section>`;
     }
 
     function loadRound(round) {
@@ -330,8 +336,7 @@
           return;
         }
         allRoundData = {};
-        state.data = data;
-        render(data);
+        renderRound(data);
       } catch (err) {
         errorBox.textContent = 'Request failed — check that the server is running.';
       }

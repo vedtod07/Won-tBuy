@@ -21,8 +21,8 @@ def tighten_targeting(campaign: Campaign) -> Campaign:
     return campaign.model_copy(update={"targeting": targeting}, deep=True)
 
 
-def optimize_copy(campaign: Campaign, cached_campaign: Campaign) -> Campaign:
-    if _use_cache() or not os.getenv("LLM_API_KEY"):
+def optimize_copy(campaign: Campaign, cached_campaign: Campaign, use_cache: bool = False) -> Campaign:
+    if use_cache or _use_cache() or not os.getenv("LLM_API_KEY"):
         return _cached_copy(campaign, cached_campaign)
 
     try:
