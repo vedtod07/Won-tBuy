@@ -1,377 +1,1294 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Won'tBuy</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Won'tBuy · Agentic Marketing Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      color-scheme: dark;
-      font-family: Inter, system-ui, sans-serif;
-      --bg: #0b1020;
-      --surface: #121a2e;
-      --surface-raised: #18233d;
-      --border: #29324d;
-      --text: #f4f7ff;
-      --muted: #aeb9d3;
-      --accent: #7186f4;
-      --warning: #f6c945;
-      --success: #58d6a9;
-      --danger: #e2708a;
+      --bg: #0b0f19;
+      --surface: #141b2d;
+      --surface-raised: #1f2a45;
+      --border: #2c3a58;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent-glow: #60a5fa;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
     }
-    * { box-sizing: border-box; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      margin: 0;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.55;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.5;
+      padding-bottom: 5rem;
     }
-    .wrap { max-width: 1180px; margin: 0 auto; padding: 1.25rem 1.5rem 3rem; }
 
-    header.banner {
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-      padding: .65rem 1rem; margin-bottom: 1.25rem;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 1.5rem;
     }
-    .brand { font-weight: 700; font-size: 1.15rem; }
-    .brand .lab { color: var(--muted); font-weight: 500; font-size: .95rem; }
-    .mode-pill {
-      display: inline-flex; align-items: center; gap: .4rem;
-      padding: .3rem .7rem; border-radius: 999px; font-size: .8rem; font-weight: 600;
+
+    /* Header & Badges */
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+    }
+
+    .brand-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+      max-width: 650px;
+    }
+
+    .status-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge.live {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+
+    .badge.cached {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+      border: 1px solid var(--warning);
+    }
+
+    .badge.simulated {
+      background: rgba(156, 163, 175, 0.15);
+      color: var(--muted);
       border: 1px solid var(--border);
     }
-    .mode-pill.live { color: var(--success); border-color: var(--success); }
-    .mode-pill.cached { color: var(--warning); border-color: var(--warning); }
-    .sim-note { color: var(--muted); font-size: .8rem; text-align: right; }
 
-    .actions {
-      display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.25rem;
+    /* Actions & Buttons */
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
     }
-    button.btn {
-      font: inherit; cursor: pointer;
-      background: var(--surface-raised); color: var(--text);
-      border: 1px solid var(--border); border-radius: 8px;
-      padding: .55rem .95rem; font-weight: 600;
-      transition: background .15s ease, opacity .15s ease;
-    }
-    button.btn:hover:not(:disabled) { background: #22304f; }
-    button.btn:disabled { opacity: .45; cursor: not-allowed; }
-    button.btn.primary { background: var(--accent); color: #0b1020; border-color: var(--accent); }
-    button.btn.primary:hover:not(:disabled) { filter: brightness(1.08); }
 
-    .layout {
-      display: grid; grid-template-columns: 1fr 1.15fr; gap: 1.25rem; align-items: start;
+    @media (max-width: 768px) {
+      .steps-row {
+        grid-template-columns: 1fr;
+      }
     }
-    @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
 
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 1rem 1.15rem; margin-bottom: 1rem;
+    .step-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      padding: 1rem;
+      border-radius: 0.75rem;
+      color: var(--text);
+      font-family: inherit;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .eyebrow {
-      font-size: .72rem; letter-spacing: .08em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: .55rem; font-weight: 700;
+
+    .step-btn:hover:not(:disabled) {
+      background: var(--surface-raised);
+      border-color: var(--muted);
     }
-    .section-title { font-size: .8rem; }
 
-    .agent-panel { position: sticky; top: 1rem; }
-    .feed { list-style: none; padding: 0; margin: 0; min-height: 6rem; }
-    .feed li {
-      padding: .45rem .6rem; border-left: 2px solid var(--accent);
-      margin-bottom: .5rem; background: var(--surface-raised); border-radius: 4px;
-      font-size: .88rem; animation: feed-in .25s ease;
+    .step-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
-    .feed li.role { color: var(--muted); font-size: .78rem; border-left-color: var(--border); }
-    @keyframes feed-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 
-    .spinner {
-      display: inline-block; width: 14px; height: 14px; margin-right: .4rem;
-      border: 2px solid var(--border); border-top-color: var(--accent);
-      border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px;
+    .step-btn .step-num {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
-    .chip {
-      background: var(--surface-raised); border: 1px solid var(--border);
-      border-radius: 999px; padding: .2rem .65rem; font-size: .8rem; color: var(--muted);
+    .step-btn .step-title {
+      font-size: 1rem;
+      font-weight: 700;
     }
-    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin: .75rem 0; }
-    .metric {
-      background: var(--surface-raised); border: 1px solid var(--border);
-      border-radius: 10px; padding: .8rem .95rem; text-align: center;
+
+    .step-btn.active {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.05);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
     }
-    .metric .value { font-size: 1.7rem; font-weight: 800; line-height: 1.1; }
-    .metric .label { font-size: .75rem; color: var(--muted); margin-top: .25rem; }
 
-    .ad-card, .preview { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-top: .5rem; }
-    .ad-card h2, .preview h2 { margin: 0 0 .4rem; font-size: 1.05rem; }
-    .ad-card p, .preview p { margin: 0 0 .6rem; color: var(--muted); }
-    .bullet { margin: .25rem 0 .25rem 1rem; color: var(--muted); }
-    .proof { color: var(--success); font-size: .85rem; margin: .5rem 0; font-weight: 600; }
-    .highlight { font-weight: 700; color: var(--accent); margin: .5rem 0; padding-left: .8rem; border-left: 3px solid var(--accent); }
-    .price { font-weight: 700; margin: .4rem 0; }
-
-    .cta-btn {
-      display: inline-block; cursor: default;
-      background: var(--accent); color: #0b1020; font-weight: 700;
-      border-radius: 8px; padding: .55rem 1.1rem; margin-top: .4rem;
-      box-shadow: 0 2px 0 rgba(0,0,0,.25);
+    .step-btn.done {
+      border-color: var(--success);
     }
-    .cta-btn.neutral { background: var(--surface); color: var(--text); border: 1px solid var(--border); box-shadow: none; }
 
-    .personas { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: .75rem; }
-    .persona {
-      background: var(--surface-raised); border: 1px solid var(--border);
-      border-radius: 10px; padding: .85rem .95rem;
+    .step-btn.done .step-num {
+      color: var(--success);
     }
-    .persona.loud { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(226,112,138,.35); }
-    .persona .name { font-weight: 700; }
-    .persona .seg { font-size: .72rem; color: var(--muted); margin-bottom: .4rem; }
-    .persona .verdict { font-weight: 700; margin: .4rem 0 .2rem; }
-    .persona .verdict.click { color: var(--success); }
-    .persona .verdict.noclick { color: var(--danger); }
-    .persona .verdict.unreached { color: var(--muted); }
-    .persona .quote { font-style: italic; color: var(--text); margin: .4rem 0 .2rem; }
-    .persona .reason { font-size: .82rem; color: var(--muted); }
 
-    .email-card { margin-top: .5rem; }
-    .email-card .subj { font-weight: 700; margin-bottom: .3rem; }
-    .email-card .body { color: var(--muted); white-space: pre-line; font-size: .88rem; }
+    .step-btn.glow {
+      border-color: var(--warning);
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
 
-    details.brief-section { margin: 1rem 0; }
-    details.brief-section summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
-    .brief-section form { display: flex; flex-direction: column; gap: .5rem; margin-top: .5rem; }
-    .brief-section textarea { width: 100%; padding: .5rem; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font: inherit; resize: vertical; }
-    .brief-error { color: var(--danger); font-size: .85rem; margin-top: .3rem; }
-    .brief-sample { color: var(--muted); font-size: .85rem; margin-top: .3rem; font-style: italic; }
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 0 0px rgba(245, 158, 11, 0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.2); }
+      100% { box-shadow: 0 0 0 0px rgba(245, 158, 11, 0); }
+    }
+
+    .hint-line {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--warning);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .hint-line::before {
+      content: "👉";
+    }
+
+    /* Export Bar */
+    .export-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1.5rem;
+    }
+
+    .export-btn {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.15s ease;
+    }
+
+    .export-btn:hover:not(:disabled) {
+      background: var(--surface-raised);
+      border-color: var(--muted);
+    }
+
+    .export-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Story Area */
+    .story-banner {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border-left: 4px solid var(--accent);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      margin-bottom: 2rem;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+    }
+
+    .story-banner.r1 { border-color: var(--warning); }
+    .story-banner.r2 { border-color: var(--warning); }
+    .story-banner.r3 { border-color: var(--success); }
+
+    .story-text {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.5;
+    }
+
+    /* Metrics Section */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (min-width: 640px) {
+      .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+    }
+
+    .metric-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-value {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* People Cards */
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .people-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .people-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .people-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .person-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 200px;
+      transition: all 0.2s ease;
+    }
+
+    .person-card.wasted {
+      border: 2px solid var(--warning);
+      background: linear-gradient(135deg, #2b1f13, #141b2d);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+    }
+
+    .person-card.wasted .wasted-tag {
+      background: var(--warning);
+      color: #0b0f19;
+      font-size: 0.65rem;
+      font-weight: 900;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+      align-self: flex-start;
+    }
+
+    .person-card.success-card {
+      border: 1px solid var(--success);
+      background: linear-gradient(135deg, #0d261e, #141b2d);
+    }
+
+    .person-card.danger-card {
+      border: 1px solid var(--danger);
+      background: linear-gradient(135deg, #261214, #141b2d);
+    }
+
+    .person-card.unreached-card {
+      opacity: 0.45;
+    }
+
+    .person-meta {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-glow);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.25rem;
+    }
+
+    .person-card.wasted .person-meta {
+      color: var(--warning);
+    }
+
+    .person-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .person-verdict {
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .person-verdict.yes { color: var(--success); }
+    .person-verdict.no { color: var(--danger); }
+    .person-verdict.unreached { color: var(--muted); }
+
+    .person-quote {
+      font-style: italic;
+      font-size: 0.85rem;
+      color: var(--text);
+      margin-top: 0.75rem;
+      border-left: 2px solid var(--border);
+      padding-left: 0.5rem;
+    }
+
+    .person-reason {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      line-height: 1.4;
+    }
+
+    /* Ad & Landing Previews */
+    .previews-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .previews-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .preview-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 320px;
+    }
+
+    .preview-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .ad-body {
+      margin-bottom: 1.5rem;
+    }
+
+    .ad-headline {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.25;
+      margin-bottom: 0.5rem;
+    }
+
+    .ad-desc {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .cta-button {
+      background: var(--accent);
+      color: #0b0f19;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      transition: all 0.15s ease;
+      display: block;
+    }
+
+    .cta-button:hover:not(:disabled) {
+      background: var(--accent-glow);
+      transform: translateY(-1px);
+    }
+
+    .cta-button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .cta-button.neutral {
+      background: #374151;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .cta-button.neutral:hover:not(:disabled) {
+      background: #4b5563;
+    }
+
+    /* Landing Content Specifics */
+    .landing-body {
+      margin-bottom: 1.5rem;
+    }
+
+    .landing-headline {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+    }
+
+    .landing-highlight {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent-glow);
+      border-left: 2px solid var(--accent);
+      padding-left: 0.50rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .landing-bullets {
+      list-style: none;
+      margin-bottom: 0.75rem;
+    }
+
+    .landing-bullets li {
+      font-size: 0.85rem;
+      color: var(--muted);
+      position: relative;
+      padding-left: 1.2rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .landing-bullets li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: 800;
+    }
+
+    .landing-proof {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--success);
+      margin-bottom: 0.75rem;
+    }
+
+    .landing-price {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--success);
+      margin-bottom: 1rem;
+    }
+
+    .landing-price.missing {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    /* Email Block */
+    .email-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .email-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .email-subject {
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .email-body {
+      font-size: 0.9rem;
+      color: var(--text);
+      white-space: pre-wrap;
+      line-height: 1.6;
+      font-family: inherit;
+    }
+
+    /* Toaster */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1e293b;
+      border: 1px solid var(--accent);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Spinner */
+    .spinner-inner {
+      display: inline-block;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    /* Details styling */
+    details {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    details summary {
+      padding: 1rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    details summary:hover {
+      background: var(--surface-raised);
+    }
+
+    details .details-content {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+      background: #0f1422;
+      border-bottom-left-radius: 0.5rem;
+      border-bottom-right-radius: 0.5rem;
+    }
+
+    .feed-list {
+      list-style: none;
+    }
+
+    .feed-list li {
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding: 0.35rem 0;
+      border-bottom: 1px solid #141b2d;
+    }
+
+    .feed-list li:last-child {
+      border-bottom: none;
+    }
+
+    /* Custom form */
+    .brief-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .brief-textarea {
+      background: #0b0f19;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .brief-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .brief-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .brief-error {
+      color: var(--danger);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 0.25rem;
+    }
+
+    .brief-sample {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-style: italic;
+      margin-top: 0.25rem;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="banner">
-      <div class="brand">Won'tBuy <span class="lab">· Agentic marketing lab</span></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
       <div>
-        <span id="mode-pill" class="mode-pill cached">Checking…</span>
-        <div class="sim-note">Simulated campaign — not connected to live ads</div>
+        <h1 class="brand-title">
+          Won'tBuy <span style="font-weight: 300; font-size: 1.1rem; opacity: 0.75;">· Agentic Marketing Lab</span>
+        </h1>
+        <p class="brand-subtitle">
+          Click the three steps below to see why B2B campaigns fail: first wrong people see it, then right people see it but copy is weak, and finally copywriting fixes convert buyers.
+        </p>
+      </div>
+      <div class="status-badges">
+        <span id="badge-mode" class="badge cached">Cached</span>
+        <span class="badge simulated">Simulated — not live ads</span>
       </div>
     </header>
 
-    <div class="actions">
-      <button class="btn primary" data-round="1" id="btn-r1">Run leak check</button>
-      <button class="btn" data-round="2" id="btn-r2">Tighten targeting</button>
-      <button class="btn" data-round="3" id="btn-r3">Fix the copy</button>
-      <button class="btn" id="export-btn">Export campaign.md</button>
+    <!-- Three Big Steps in a Row -->
+    <div class="steps-row">
+      <button type="button" id="step-1" class="step-btn active" onclick="triggerLoadRound(1)">
+        <span class="step-num">Step 1</span>
+        <span class="step-title">Wrong eyes — Find leak</span>
+      </button>
+      <button type="button" id="step-2" class="step-btn" onclick="triggerLoadRound(2)">
+        <span class="step-num">Step 2</span>
+        <span class="step-title">Same words — Tighten targeting</span>
+      </button>
+      <button type="button" id="step-3" class="step-btn" onclick="triggerLoadRound(3)">
+        <span class="step-num">Step 3</span>
+        <span class="step-title">Right words — Fix copy</span>
+      </button>
     </div>
 
-    <details class="brief-section">
-      <summary>Custom brief (experimental)</summary>
-      <form id="brief-form">
-        <textarea id="brief-input" rows="3" placeholder="Describe your product, target buyer, and price…"></textarea>
-        <button type="submit" class="btn">Run custom campaign</button>
-      </form>
-      <div id="brief-error" class="brief-error"></div>
-      <div id="brief-sample" class="brief-sample"></div>
+    <!-- Next Step Hint Line -->
+    <div id="step-hint" class="hint-line">Next step: Tighten targeting to stop paying for Jules.</div>
+
+    <!-- Export Action -->
+    <div class="export-container">
+      <button type="button" id="export-btn" class="export-btn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+        </svg>
+        Export campaign.md
+      </button>
+    </div>
+
+    <!-- Story Banner (Spinner placeholder inside) -->
+    <div id="story-banner" class="story-banner r1">
+      <div id="story-content" class="story-text">
+        Wrong People + Wrong Words: A student enthusiastically clicks your B2B factory ad (wasted spend), while three actual plant managers refuse because the page has no pricing and claims to be #1 without proof. Two failures, same campaign.
+      </div>
+    </div>
+
+    <!-- Metrics Row -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-title">Who saw the ad</div>
+        <div id="metric-accuracy" class="metric-value">40%</div>
+        <div id="metric-accuracy-text" class="metric-sub">Broad targeting leaked to students & engineers.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Would the buyers click?</div>
+        <div id="metric-purchase" class="metric-value">0/3</div>
+        <div class="metric-sub">Only Klaus, Anika, and Mateo count as real buyers (if reached).</div>
+      </div>
+    </div>
+
+    <!-- People Row -->
+    <div>
+      <h3 class="section-title">Audience Verdicts</h3>
+      <div id="people-container" class="people-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Ad & Landing Previews -->
+    <div class="previews-grid">
+      <!-- Sponsored Ad -->
+      <div class="preview-box">
+        <div>
+          <div class="preview-title">Google Search Sponsored Ad</div>
+          <div class="ad-body">
+            <h4 id="ad-headline" class="ad-headline">The #1 Dashboard for Factory Performance</h4>
+            <p id="ad-desc" class="ad-desc">Understand downtime and keep your operation moving.</p>
+          </div>
+        </div>
+        <div>
+          <button type="button" id="ad-cta" class="cta-button">Learn more</button>
+        </div>
+      </div>
+
+      <!-- Landing Page -->
+      <div class="preview-box">
+        <div>
+          <div class="preview-title">Product Landing Page</div>
+          <div class="landing-body">
+            <h4 id="page-headline" class="landing-headline">Understand shift performance</h4>
+            <div id="page-highlight" class="landing-highlight"></div>
+            <ul id="page-bullets" class="landing-bullets"></ul>
+            <div id="page-proof" class="landing-proof"></div>
+            <div id="page-price" class="landing-price">Price not shown</div>
+          </div>
+        </div>
+        <div>
+          <button type="button" id="page-cta" class="cta-button">Learn more</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Round 3 Email Block -->
+    <div id="email-section" class="email-card" style="display: none;">
+      <div class="preview-title">Triggered Email Follow-Up (Sent on Conversion)</div>
+      <div class="email-meta">
+        <div>Subject: <span id="email-subject" class="email-subject">Understanding shift performance</span></div>
+      </div>
+      <div id="email-body" class="email-body">...</div>
+    </div>
+
+    <!-- Agent Activity collapsed details -->
+    <details id="details-agents">
+      <summary>
+        <span>What the agents did</span>
+        <span style="font-size: 0.8rem; color: var(--muted);">Click to inspect log</span>
+      </summary>
+      <div class="details-content">
+        <ul id="feed-list" class="feed-list">
+          <!-- Populated dynamically -->
+        </ul>
+      </div>
     </details>
 
-    <div class="layout">
-      <section class="card agent-panel">
-        <div class="eyebrow section-title">Agent activity</div>
-        <ul class="feed" id="feed"></ul>
-      </section>
-
-      <section id="dashboard"></section>
-    </div>
+    <!-- Custom Brief collapsed details -->
+    <details id="details-custom">
+      <summary>
+        <span>Custom brief (experimental)</span>
+        <span style="font-size: 0.8rem; color: var(--muted);">Run a custom evaluation</span>
+      </summary>
+      <div class="details-content">
+        <form id="brief-form" class="brief-form">
+          <textarea id="brief-input" class="brief-textarea" placeholder="Describe your product, its features, and real price. E.g., Northline: downtime dashboard starting from &euro;199/mo. 40 plants trust us."></textarea>
+          <div class="brief-actions">
+            <button type="submit" id="custom-submit-btn" class="cta-button" style="width: auto;">Run custom campaign</button>
+          </div>
+          <div id="brief-error" class="brief-error"></div>
+          <div id="brief-sample" class="brief-sample"></div>
+        </form>
+      </div>
+    </details>
   </div>
 
+  <!-- Toast Element -->
+  <div id="toast">
+    <span id="toast-text">Toast Alert!</span>
+  </div>
+
+  <!-- Script logic -->
   <script>
-    const state = { data: null, loading: false };
-    const feedEl = document.getElementById('feed');
-    const dashEl = document.getElementById('dashboard');
-    const modePill = document.getElementById('mode-pill');
-    const buttons = {
-      1: document.getElementById('btn-r1'),
-      2: document.getElementById('btn-r2'),
-      3: document.getElementById('btn-r3'),
+    const state = {
+      loading: false,
+      currentRound: 1,
+      completed: { 1: false, 2: false, 3: false }
     };
 
-    function setMode(live) {
-      modePill.textContent = live ? 'Live Gemini' : 'Cached';
-      modePill.className = 'mode-pill ' + (live ? 'live' : 'cached');
+    const narratives = {
+      1: "Wrong People + Wrong Words: A student enthusiastically clicks your B2B factory ad (wasted spend), while three actual plant managers refuse because the page has no pricing and claims to be #1 without proof. Two failures, same campaign.",
+      2: "Right People + Wrong Words: Jules is no longer reached (targeting leak stopped!). However, the copy is still unchanged. The plant managers still refuse to click because there is no pricing and no real proof.",
+      3: "Right People + Right Words: Targeting remains tight, and we fixed the copywriting (clear price starting from €199/mo, real proof, and direct 'Book a demo' action). All three plant managers now click!"
+    };
+
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
     }
 
-    function setLoading(loading) {
-      state.loading = loading;
-      Object.values(buttons).forEach((b) => (b.disabled = loading));
-      document.getElementById('export-btn').disabled = loading;
-    }
+    // Interactive button clicks triggers toast
+    document.getElementById('ad-cta').addEventListener('click', () => {
+      const text = document.getElementById('ad-cta').textContent;
+      showToast(`Simulated "${text}" ad click — this is a prototype, not a live ad.`);
+    });
 
-    function renderPersona(p) {
-      const isLoud = p.is_icp === false && p.reached && p.would_click;
-      let verdict, verdictClass;
-      if (!p.reached) {
-        verdict = 'Not reached this round';
-        verdictClass = 'unreached';
-      } else if (p.would_click) {
-        verdict = 'Would click';
-        verdictClass = 'click';
+    document.getElementById('page-cta').addEventListener('click', () => {
+      const text = document.getElementById('page-cta').textContent;
+      showToast(`Simulated "${text}" landing page conversion successfully submitted!`);
+    });
+
+    function setBadgeMode(live) {
+      const mode = document.getElementById('badge-mode');
+      if (live) {
+        mode.className = 'badge live';
+        mode.textContent = 'Live mode';
       } else {
-        verdict = 'Would not click';
-        verdictClass = 'noclick';
+        mode.className = 'badge cached';
+        mode.textContent = 'Cached';
       }
-      const quote = p.quote ? `<div class="quote">“${p.quote}”</div>` : '';
-      const reason = p.reason ? `<div class="reason">${p.reason}</div>` : '';
-      return `
-        <article class="persona ${isLoud ? 'loud' : ''}">
-          <div class="name">${p.name}</div>
-          <div class="seg">${p.segment === 'student' ? 'student' : 'ICP · plant manager'}</div>
-          <div class="verdict ${verdictClass}">${verdict}</div>
-          ${quote}
-          ${reason}
-        </article>`;
+    }
+
+    function renderPersonCard(p) {
+      const isJules = p.id === 'jules' || p.name.toLowerCase() === 'jules';
+      const roleBadge = isJules ? "Not a buyer · student" : "Buyer · plant manager";
+      
+      if (isJules) {
+        if (!p.reached) {
+          return `
+            <div class="person-card unreached-card">
+              <div>
+                <div class="person-meta">${roleBadge}</div>
+                <div class="person-name">${p.name}</div>
+              </div>
+              <div class="person-verdict unreached">Not reached this round</div>
+              <div class="person-reason" style="margin-top: 1rem;">Targeting excludes students. Budget preserved.</div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="person-card wasted">
+              <div>
+                <div class="wasted-tag">WASTED SPEND</div>
+                <div class="person-meta">${roleBadge}</div>
+                <div class="person-name">${p.name}</div>
+              </div>
+              <div class="person-verdict yes">Would click</div>
+              <p class="person-quote">“${p.quote || "This sounds like something interesting."}”</p>
+              <div class="person-reason">Jules is a curious student but has no budget or plant. Wastes ad dollars.</div>
+            </div>
+          `;
+        }
+      } else {
+        // Buyer
+        if (!p.reached) {
+          return `
+            <div class="person-card unreached-card">
+              <div>
+                <div class="person-meta">${roleBadge}</div>
+                <div class="person-name">${p.name}</div>
+              </div>
+              <div class="person-verdict unreached">Not reached this round</div>
+              <div class="person-reason" style="margin-top: 1rem;">Buyer was missed by broad/weak filters.</div>
+            </div>
+          `;
+        } else if (p.would_click) {
+          return `
+            <div class="person-card success-card">
+              <div>
+                <div class="person-meta">${roleBadge}</div>
+                <div class="person-name">${p.name}</div>
+              </div>
+              <div class="person-verdict yes">Would click</div>
+              <p class="person-quote">“${p.quote}”</p>
+              <div class="person-reason">${p.reason || "Clear offer meets their requirements."}</div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="person-card danger-card">
+              <div>
+                <div class="person-meta">${roleBadge}</div>
+                <div class="person-name">${p.name}</div>
+              </div>
+              <div class="person-verdict no">Would not click</div>
+              <p class="person-quote">“${p.quote}”</p>
+              <div class="person-reason">${p.reason}</div>
+            </div>
+          `;
+        }
+      }
     }
 
     function render(data) {
-      state.data = data;
+      const r = data.round || 0;
       const c = data.campaign;
-      const round = data.round || 0;
+      const accuracy = Math.round(data.targeting_accuracy || 0);
 
-      const chips = Object.entries(c.targeting || {}).map(([group, values]) =>
-        values.map((v) => `<span class="chip">${String(v).replace(/_/g, ' ')}</span>`).join('')
-      ).join('');
+      // Render Story banner
+      const banner = document.getElementById('story-banner');
+      banner.className = `story-banner r${r || '1'}`;
+      document.getElementById('story-content').innerHTML = narratives[r] || `Custom Campaign evaluated. Metrics and creative previews simulated.`;
 
-      const bullets = (c.page.bullets && c.page.bullets.length)
-        ? c.page.bullets.map((b) => `<div class="bullet">• ${b}</div>`).join('')
-        : '';
-      const pageBody = (c.page.bullets && c.page.bullets.length) || !c.page.body
-        ? ''
-        : `<p>${c.page.body}</p>`;
-      const proof = c.page.proof ? `<div class="proof">${c.page.proof}</div>` : '';
-      const highlight = c.page.highlight ? `<div class="highlight">${c.page.highlight}</div>` : '';
-      const price = c.page.price ? `<div class="price">${c.page.price}</div>` : '<div class="price">no price</div>';
+      // Render metrics
+      document.getElementById('metric-accuracy').textContent = `${accuracy}%`;
+      const accuracySubText = document.getElementById('metric-accuracy-text');
+      if (r === 1) {
+        accuracySubText.textContent = "Broad targeting leaked to students & engineers.";
+      } else if (r >= 2) {
+        accuracySubText.textContent = "Tight targeting restricted only to plant managers.";
+      } else {
+        accuracySubText.textContent = `Targeting accuracy score: ${accuracy}%`;
+      }
 
-      const email = c.email ? `
-        <div class="card email-card">
-          <div class="eyebrow">Email follow-up</div>
-          <div class="subj">${c.email.subject}</div>
-          <div class="body">${c.email.body}</div>
-        </div>` : '';
+      document.getElementById('metric-purchase').textContent = data.icp_purchase_rate || "0/3";
 
-      const personas = (data.personas || []).map(renderPersona).join('');
+      // Render people
+      const peopleContainer = document.getElementById('people-container');
+      peopleContainer.innerHTML = (data.personas || []).map(renderPersonCard).join('');
 
-      dashEl.innerHTML = `
-        <section class="card">
-          <div class="eyebrow">${round === 0 ? 'Custom campaign' : 'Round ' + round} · ${c.company}</div>
+      // Render Ad Creative
+      document.getElementById('ad-headline').textContent = c.ad.headline;
+      document.getElementById('ad-desc').textContent = c.ad.body;
+      const adCta = document.getElementById('ad-cta');
+      adCta.textContent = c.ad.cta;
+      if (c.ad.cta === 'Learn more') {
+        adCta.className = 'cta-button neutral';
+      } else {
+        adCta.className = 'cta-button';
+      }
 
-          <div class="eyebrow section-title">Paid targeting</div>
-          <div class="chips">${chips}</div>
+      // Render Landing Page
+      document.getElementById('page-headline').textContent = c.page.headline;
+      
+      const highlightEl = document.getElementById('page-highlight');
+      if (c.page.highlight) {
+        highlightEl.textContent = c.page.highlight;
+        highlightEl.style.display = 'block';
+      } else {
+        highlightEl.style.display = 'none';
+      }
 
-          <div class="metrics">
-            <div class="metric"><div class="value">${data.targeting_accuracy}%</div><div class="label">Targeting accuracy</div></div>
-            <div class="metric"><div class="value">${data.icp_purchase_rate}</div><div class="label">ICP purchase rate</div></div>
-          </div>
+      const bulletsEl = document.getElementById('page-bullets');
+      bulletsEl.innerHTML = '';
+      if (c.page.bullets && c.page.bullets.length) {
+        c.page.bullets.forEach(b => {
+          const li = document.createElement('li');
+          li.textContent = b;
+          bulletsEl.appendChild(li);
+        });
+        bulletsEl.style.display = 'block';
+      } else {
+        bulletsEl.style.display = 'none';
+      }
 
-          ${data.critic_summary ? `<div class="eyebrow section-title">Funnel critic</div><p style="margin:0 0 .5rem">${data.critic_summary}</p>` : ''}
+      const proofEl = document.getElementById('page-proof');
+      if (c.page.proof) {
+        proofEl.textContent = c.page.proof;
+        proofEl.style.display = 'block';
+      } else {
+        proofEl.style.display = 'none';
+      }
 
-          <div class="eyebrow section-title">Ad</div>
-          <div class="ad-card">
-            <h2>${c.ad.headline}</h2>
-            <p>${c.ad.body}</p>
-            <span class="cta-btn ${c.ad.cta === 'Learn more' ? 'neutral' : ''}">${c.ad.cta}</span>
-          </div>
+      const priceEl = document.getElementById('page-price');
+      if (c.page.price) {
+        priceEl.textContent = c.page.price;
+        priceEl.className = 'landing-price';
+      } else {
+        priceEl.textContent = 'Price not shown';
+        priceEl.className = 'landing-price missing';
+      }
 
-          <div class="eyebrow section-title" style="margin-top:1rem">Landing page</div>
-          <div class="preview">
-            <h2>${c.page.headline}</h2>
-            ${highlight}
-            ${pageBody}
-            ${bullets}
-            ${proof}
-            ${price}
-            <span class="cta-btn ${c.page.cta === 'Learn more' ? 'neutral' : ''}">${c.page.cta}</span>
-          </div>
+      const pageCta = document.getElementById('page-cta');
+      pageCta.textContent = c.page.cta;
+      if (c.page.cta === 'Learn more') {
+        pageCta.className = 'cta-button neutral';
+      } else {
+        pageCta.className = 'cta-button';
+      }
 
-          ${email}
-        </section>
+      // Render Email block
+      const emailSection = document.getElementById('email-section');
+      if (r === 3 && c.email) {
+        document.getElementById('email-subject').textContent = c.email.subject;
+        document.getElementById('email-body').textContent = c.email.body;
+        emailSection.style.display = 'block';
+      } else {
+        emailSection.style.display = 'none';
+      }
 
-        <section>
-          <div class="eyebrow section-title">Audience</div>
-          <div class="personas">${personas}</div>
-        </section>`;
-    }
-
-    function renderFeed(feed) {
-      feedEl.innerHTML = '';
-      feed.forEach((line, i) => {
+      // Render Agent activity
+      const feedList = document.getElementById('feed-list');
+      feedList.innerHTML = '';
+      if (data.agent_feed && data.agent_feed.length) {
+        data.agent_feed.forEach(line => {
+          const li = document.createElement('li');
+          li.textContent = line;
+          feedList.appendChild(li);
+        });
+      } else {
         const li = document.createElement('li');
-        li.textContent = line;
-        li.className = line.endsWith(':') ? 'role' : '';
-        feedEl.appendChild(li);
-      });
+        li.textContent = 'No log lines recorded.';
+        feedList.appendChild(li);
+      }
     }
 
-    async function loadRound(round) {
+    function updateStepButtons() {
+      const r = state.currentRound;
+      
+      if (r === 1) state.completed[1] = true;
+      if (r === 2) { state.completed[1] = true; state.completed[2] = true; }
+      if (r === 3) { state.completed[1] = true; state.completed[2] = true; state.completed[3] = true; }
+
+      for (let step = 1; step <= 3; step++) {
+        const btn = document.getElementById(`step-${step}`);
+        if (!btn) continue;
+        
+        btn.className = 'step-btn';
+        
+        if (step === r) {
+          btn.classList.add('active');
+        }
+        
+        if (state.completed[step] && step !== r) {
+          btn.classList.add('done');
+        }
+        
+        // Glow logic
+        if (r === 1 && step === 2) {
+          btn.classList.add('glow');
+        } else if (r === 2 && step === 3) {
+          btn.classList.add('glow');
+        }
+      }
+
+      // Hint line update
+      const hint = document.getElementById('step-hint');
+      if (r === 1) {
+        hint.innerHTML = 'Next step: <strong style="color:white;">Tighten targeting</strong> — stop paying for Jules.';
+      } else if (r === 2) {
+        hint.innerHTML = 'Next step: <strong style="color:white;">Fix the copy</strong> — add transparent pricing and proof.';
+      } else if (r === 3) {
+        hint.innerHTML = '<span style="color:var(--success);">🎉 Campaign Optimized!</span> Both targeting and copywriting are working.';
+      } else {
+        hint.textContent = '';
+      }
+    }
+
+    async function triggerLoadRound(roundNumber) {
       if (state.loading) return;
-      setLoading(true);
-      renderFeed(['Working…']);
+      state.loading = true;
+      
+      // Update step buttons to disabled state during request
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`step-${i}`).disabled = true;
+      }
+      document.getElementById('custom-submit-btn').disabled = true;
+
+      // Show spinner in story area only
+      document.getElementById('story-content').innerHTML = `
+        <div class="loading-container">
+          <span class="spinner-inner"></span>
+          <span>Agents compiling metrics for Round ${roundNumber}...</span>
+        </div>
+      `;
+
       try {
-        const res = await fetch('/api/round/' + round);
+        const res = await fetch(`/api/round/${roundNumber}`);
+        if (!res.ok) throw new Error('Round load error');
         const data = await res.json();
+        
+        state.currentRound = roundNumber;
         render(data);
-        renderFeed(data.agent_feed || []);
+        updateStepButtons();
       } catch (err) {
-        renderFeed(['Error loading round — check the server.']);
+        document.getElementById('story-content').textContent = `Failed to load metrics for Round ${roundNumber}. Please retry.`;
       } finally {
-        setLoading(false);
+        state.loading = false;
+        for (let i = 1; i <= 3; i++) {
+          document.getElementById(`step-${i}`).disabled = false;
+        }
+        document.getElementById('custom-submit-btn').disabled = false;
       }
     }
 
-    document.querySelectorAll('[data-round]').forEach((btn) => {
-      btn.addEventListener('click', () => loadRound(btn.dataset.round));
-    });
-
-    document.getElementById('export-btn').addEventListener('click', () => {
-      window.location.href = '/api/export/campaign.md';
-    });
-
-    // Load initial status + round 1.
-    async function boot() {
+    // Export campaign.md using fetch + blob to prevent navigation
+    document.getElementById('export-btn').addEventListener('click', async () => {
       try {
-        const res = await fetch('/api/status');
-        const st = await res.json();
-        setMode(st.live);
-      } catch (e) {
-        setMode(false);
+        const btn = document.getElementById('export-btn');
+        btn.disabled = true;
+        const res = await fetch('/api/export/campaign.md');
+        if (!res.ok) throw new Error('Export failed');
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'campaign.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        showToast('campaign.md exported successfully!');
+      } catch (err) {
+        showToast('Export failed — check server status.');
+      } finally {
+        document.getElementById('export-btn').disabled = false;
       }
-      loadRound(1);
-    }
+    });
 
-    // Custom brief.
+    // Custom brief submission
     document.getElementById('brief-form').addEventListener('submit', async (ev) => {
       ev.preventDefault();
-      const errorBox = document.getElementById('brief-error');
+      const errBox = document.getElementById('brief-error');
       const sampleBox = document.getElementById('brief-sample');
-      errorBox.textContent = '';
+      errBox.textContent = '';
       sampleBox.textContent = '';
-      const brief = document.getElementById('brief-input').value;
+
+      const brief = document.getElementById('brief-input').value.trim();
+      if (!brief) {
+        errBox.textContent = 'Please enter a campaign brief first.';
+        return;
+      }
+
+      state.loading = true;
+      document.getElementById('custom-submit-btn').disabled = true;
+      document.getElementById('story-content').innerHTML = `
+        <div class="loading-container">
+          <span class="spinner-inner"></span>
+          <span>Running custom targeting & copywriting evaluations...</span>
+        </div>
+      `;
+
       try {
         const res = await fetch('/api/custom', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ brief }),
+          body: JSON.stringify({ brief })
         });
         const data = await res.json();
         if (!res.ok || data.error) {
-          errorBox.textContent = data.error || data.detail || 'Server error — try the sample brief.';
-          if (data.sample) sampleBox.textContent = 'Sample: ' + data.sample;
+          errBox.textContent = data.error || data.detail || 'Error running brief.';
+          if (data.sample) {
+            sampleBox.textContent = 'Sample: ' + data.sample;
+          }
+          document.getElementById('story-content').textContent = 'Custom campaign execution failed.';
           return;
         }
+        state.currentRound = 0; // custom marker
         render(data);
-        renderFeed(data.agent_feed || []);
+        updateStepButtons();
+        showToast('Custom campaign analyzed!');
       } catch (err) {
-        errorBox.textContent = 'Request failed — check that the server is running.';
+        errBox.textContent = 'Request failed. Make sure the server is up.';
+        document.getElementById('story-content').textContent = 'Custom campaign execution failed.';
+      } finally {
+        state.loading = false;
+        document.getElementById('custom-submit-btn').disabled = false;
       }
     });
+
+    // Initial load
+    async function boot() {
+      try {
+        const res = await fetch('/api/status');
+        if (res.ok) {
+          const st = await res.json();
+          setBadgeMode(st.live);
+        }
+      } catch (e) {
+        setBadgeMode(false);
+      }
+      triggerLoadRound(1);
+    }
 
     boot();
   </script>
