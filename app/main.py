@@ -15,8 +15,8 @@ STATIC_DIR = BASE_DIR / "app" / "static"
 app = FastAPI(title="Won'tBuy", version="0.1.0")
 
 
-def load_round_one() -> dict:
-    with (FIXTURES_DIR / "round_1.json").open(encoding="utf-8") as fixture:
+def load_round(round_number: int) -> dict:
+    with (FIXTURES_DIR / f"round_{round_number}.json").open(encoding="utf-8") as fixture:
         payload = json.load(fixture)
 
     campaign = Campaign.model_validate(payload["campaign"])
@@ -39,4 +39,9 @@ def health() -> dict[str, str]:
 
 @app.get("/api/round/1")
 def round_one() -> dict:
-    return load_round_one()
+    return load_round(1)
+
+
+@app.get("/api/round/2")
+def round_two() -> dict:
+    return load_round(2)

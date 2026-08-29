@@ -12,8 +12,10 @@
     .eyebrow { color: #8da2fb; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
     h1 { margin: .5rem 0; font-size: clamp(2.5rem, 8vw, 5rem); }
     p { color: #b9c2da; font-size: 1.2rem; max-width: 62ch; }
-    .card { margin-top: 2rem; padding: 1.5rem; border: 1px solid #29324d; border-radius: 1rem; background: #121a2e; }
-    button { border: 0; border-radius: .6rem; padding: .8rem 1rem; background: #7186f4; color: white; font-weight: 700; }
+    .rounds { display: flex; gap: .75rem; margin-top: 2rem; }
+    .card { margin-top: 1rem; padding: 1.5rem; border: 1px solid #29324d; border-radius: 1rem; background: #121a2e; }
+    button { border: 0; border-radius: .6rem; padding: .8rem 1rem; background: #7186f4; color: white; font-weight: 700; cursor: pointer; }
+    button:hover { background: #8799f7; }
   </style>
 </head>
 <body>
@@ -22,21 +24,40 @@
     <div class="eyebrow">Agentic marketing lab</div>
     <h1>Won'tBuy</h1>
     <p>Diagnose whether a campaign is reaching the wrong people or saying the wrong thing.</p>
+    <nav class="rounds" aria-label="Campaign rounds">
+      <button type="button" data-round="1">Load round 1</button>
+      <button type="button" data-round="2">Load round 2</button>
+    </nav>
     <section class="card" id="campaign" aria-live="polite">Loading round one…</section>
   </main>
   <script>
-    fetch('/api/round/1')
-      .then((response) => response.json())
-      .then(({ campaign }) => {
-        document.querySelector('#campaign').innerHTML = `
-          <div class="eyebrow">Round 1 · ${campaign.company}</div>
-          <h2>${campaign.ad.headline}</h2>
-          <p>${campaign.ad.body}</p>
-          <button type="button">${campaign.ad.cta}</button>`;
-      })
-      .catch(() => {
-        document.querySelector('#campaign').textContent = 'Round one could not be loaded.';
-      });
+    const campaignPanel = document.querySelector('#campaign');
+
+    function loadRound(round) {
+      campaignPanel.textContent = `Loading round ${round}…`;
+      fetch(`/api/round/${round}`)
+        .then((response) => {
+          if (!response.ok) throw new Error('Round could not be loaded.');
+          return response.json();
+        })
+        .then(({ campaign, targeting_accuracy: accuracy }) => {
+          campaignPanel.innerHTML = `
+            <div class="eyebrow">Round ${round} · ${campaign.company}</div>
+            <h2>${campaign.ad.headline}</h2>
+            <p>${campaign.ad.body}</p>
+            <p>Targeting accuracy: ${accuracy}%</p>
+            <button type="button">${campaign.ad.cta}</button>`;
+        })
+        .catch(() => {
+          campaignPanel.textContent = `Round ${round} could not be loaded.`;
+        });
+    }
+
+    document.querySelectorAll('[data-round]').forEach((button) => {
+      button.addEventListener('click', () => loadRound(button.dataset.round));
+    });
+
+    loadRound(1);
   </script>
 </body>
 </html>

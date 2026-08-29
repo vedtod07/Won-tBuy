@@ -1,0 +1,58 @@
+{
+  "round": 2,
+  "mode": "simulated",
+  "campaign": {
+    "company": "Northline",
+    "targeting": {
+      "industries": ["manufacturing"],
+      "roles": ["plant_manager", "operations_manager"],
+      "company_sizes": ["1-49", "50-249", "250+"],
+      "regions": ["europe"]
+    },
+    "ad": {
+      "headline": "The #1 Dashboard for Factory Performance",
+      "body": "Understand downtime and keep your operation moving.",
+      "cta": "Learn more"
+    },
+    "page": {
+      "headline": "The #1 Dashboard for Factory Performance",
+      "body": "Northline gives plant teams one place to understand downtime.",
+      "cta": "Learn more",
+      "price": null
+    }
+  },
+  "personas": [
+    {
+      "id": "klaus",
+      "name": "Klaus",
+      "segment": "plant_manager",
+      "is_icp": true,
+      "reached": true,
+      "would_click": false
+    },
+    {
+      "id": "anika",
+      "name": "Anika",
+      "segment": "plant_manager",
+      "is_icp": true,
+      "reached": true,
+      "would_click": false
+    },
+    {
+      "id": "mateo",
+      "name": "Mateo",
+      "segment": "plant_manager",
+      "is_icp": true,
+      "reached": true,
+      "would_click": false
+    },
+    {
+      "id": "jules",
+      "name": "Jules",
+      "segment": "student",
+      "is_icp": false,
+      "reached": false,
+      "status": "Not reached this round"
+    }
+  ]
+}
