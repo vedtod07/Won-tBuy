@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Won'tBuy</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+    body { margin: 0; background: #0b1020; color: #f4f7ff; }
+    .banner { padding: .7rem 1rem; background: #f6c945; color: #211b00; text-align: center; font-weight: 700; }
+    main { width: min(900px, calc(100% - 2rem)); margin: 4rem auto; }
+    .eyebrow { color: #8da2fb; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: .5rem 0; font-size: clamp(2.5rem, 8vw, 5rem); }
+    p { color: #b9c2da; font-size: 1.2rem; max-width: 62ch; }
+    .card { margin-top: 2rem; padding: 1.5rem; border: 1px solid #29324d; border-radius: 1rem; background: #121a2e; }
+    button { border: 0; border-radius: .6rem; padding: .8rem 1rem; background: #7186f4; color: white; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="banner">Simulated campaign — not connected to live ads</div>
+  <main>
+    <div class="eyebrow">Agentic marketing lab</div>
+    <h1>Won'tBuy</h1>
+    <p>Diagnose whether a campaign is reaching the wrong people or saying the wrong thing.</p>
+    <section class="card" id="campaign" aria-live="polite">Loading round one…</section>
+  </main>
+  <script>
+    fetch('/api/round/1')
+      .then((response) => response.json())
+      .then(({ campaign }) => {
+        document.querySelector('#campaign').innerHTML = `
+          <div class="eyebrow">Round 1 · ${campaign.company}</div>
+          <h2>${campaign.ad.headline}</h2>
+          <p>${campaign.ad.body}</p>
+          <button type="button">${campaign.ad.cta}</button>`;
+      })
+      .catch(() => {
+        document.querySelector('#campaign').textContent = 'Round one could not be loaded.';
+      });
+  </script>
+</body>
+</html>
