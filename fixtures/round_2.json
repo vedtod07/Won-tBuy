@@ -11,16 +11,17 @@
     },
     "ad": {
       "headline": "The #1 Dashboard for Factory Performance",
-      "body": "Understand downtime and keep your operation moving.",
+      "body": "Stop guessing why the line stopped. Northline is the operating system for modern plants — live downtime, output, and shift notes in one board. Built for teams that want to move faster.",
       "cta": "Learn more"
     },
     "page": {
       "headline": "The #1 Dashboard for Factory Performance",
-      "body": "Northline gives plant teams one place to understand downtime.",
+      "body": "Northline gives every site one live picture of the floor. See what is running, what is down, and what to do next — without another spreadsheet or a walk to the line.",
       "bullets": [],
       "proof": null,
-      "cta": "Learn more",
-      "price": null
+      "highlight": null,
+      "price": null,
+      "cta": "Learn more"
     }
   },
   "personas": [

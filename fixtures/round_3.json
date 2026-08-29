@@ -10,26 +10,26 @@
       "regions": ["europe"]
     },
     "ad": {
-      "headline": "See machine downtime before the shift",
-      "body": "Northline gives plant managers a clear view of downtime, trusted by 40 plants.",
+      "headline": "See which line will be down before the shift starts",
+      "body": "Northline flags machine downtime in time for the 05:40 briefing — not the afternoon scrap meeting. Used on 40 plants. From €199/mo.",
       "cta": "Book a demo"
     },
     "page": {
-      "headline": "See downtime before it costs another shift",
-      "body": "Northline helps plant managers spot machine downtime early and keep production moving.",
+      "headline": "Downtime on Line 4 should not be a surprise at 06:10",
+      "body": "Northline is a factory dashboard for plant and operations managers. It shows which machines will slip before the shift board is written, so you can move crews instead of explaining lost hours later.",
       "bullets": [
-        "Real-time machine status for every line on the floor",
-        "Shift-over-shift downtime trends with automated alerts",
-        "Exportable reports for operations reviews"
+        "Live status for every line — running, idle, or down, with last stop reason",
+        "Shift-over-shift downtime vs plan, with alerts before the handover",
+        "A one-page report you can take into the ops review, not a CSV dump"
       ],
       "proof": "Trusted by 40 plants across Europe",
-      "highlight": "See machine downtime before the shift — not after it costs you.",
+      "highlight": "From the 05:40 briefing — not from a post-mortem.",
       "cta": "Book a demo",
       "price": "from €199/mo"
     },
     "email": {
-      "subject": "Following up on Northline — 2 min demo?",
-      "body": "Hi,\n\nI noticed you checked out Northline. Would a 2-minute demo help? We show plant managers machine downtime before the shift starts — 40 plants already use it.\n\nBest,\nThe Northline Team"
+      "subject": "15 min: Line-level downtime before your shift board",
+      "body": "Hi,\n\nYou looked at Northline. I work with plant managers who only find Line 4 is down once the shift has already started.\n\nWe can walk your last 24 hours of stops in 15 minutes — 40 plants already run this before the handover. From €199/mo.\n\nI have Thursday 07:30 or 16:00 CET.\n\nLena Vogt\nCustomer development, Northline"
     }
   },
   "personas": [

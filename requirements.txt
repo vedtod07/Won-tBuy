@@ -2,3 +2,6 @@ fastapi==0.116.1
 uvicorn[standard]==0.35.0
 pytest==8.4.0
 python-dotenv==1.0.1
+langchain-core==0.3.79
+langgraph==0.6.7
+langchain-google-genai==2.1.12

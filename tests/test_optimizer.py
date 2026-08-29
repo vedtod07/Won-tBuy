@@ -28,9 +28,9 @@ def test_tighten_targeting_narrows_enums():
     campaign = _load_campaign(1)
     result = tighten_targeting(campaign)
 
-    industries = [i.value for i in result.targeting.industries]
-    roles = [r.value for r in result.targeting.roles]
-    regions = [r.value for r in result.targeting.regions]
+    industries = list(result.targeting.industries)
+    roles = list(result.targeting.roles)
+    regions = list(result.targeting.regions)
 
     assert industries == ["manufacturing"]
     assert set(roles) == {"plant_manager", "operations_manager"}

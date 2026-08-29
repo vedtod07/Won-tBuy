@@ -304,7 +304,32 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--muted);
-      margin-bottom: 1rem;
+      margin-bottom: 0.35rem;
+    }
+    .people-kicker {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-glow);
+      margin-bottom: 0.35rem;
+    }
+    .people-sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0 0 1rem;
+    }
+    .frozen-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.4rem;
+      border-radius: 999px;
+      margin-bottom: 0.35rem;
     }
 
     .people-grid {
@@ -734,6 +759,61 @@
       font-style: italic;
       margin-top: 0.25rem;
     }
+
+    .li-chrome {
+      display: flex; align-items: center; gap: 0.65rem;
+      margin-bottom: 0.75rem; color: var(--muted); font-size: 0.8rem;
+    }
+    .li-avatar {
+      width: 2rem; height: 2rem; border-radius: 999px;
+      display: grid; place-items: center;
+      background: var(--surface-raised); color: #fff; font-weight: 800;
+      border: 1px solid var(--border);
+    }
+    .li-chrome .promoted { color: var(--muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+    .li-chrome .url { color: var(--accent-glow); }
+    .mock-board {
+      background: #0b0f19; border: 1px solid var(--border); border-radius: 0.5rem;
+      padding: 0.6rem 0.75rem; margin: 0.75rem 0; font-size: 0.82rem;
+    }
+    .board-row {
+      display: flex; justify-content: space-between; padding: 0.28rem 0;
+      color: var(--muted); border-bottom: 1px solid var(--border);
+    }
+    .board-row:last-child { border-bottom: none; }
+    .board-row .down { color: var(--danger); font-weight: 700; }
+    .landing-nav { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.65rem; }
+    .eyebrow {
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--accent-glow); margin-bottom: 0.35rem;
+    }
+    .price-slot {
+      margin: 0.5rem 0; font-weight: 700; color: var(--text);
+    }
+    .mail-chrome {
+      font-size: 0.82rem; color: var(--muted); margin-bottom: 0.6rem; line-height: 1.45;
+    }
+    .person-title { font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
+    .agent-room {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.1rem 1.2rem;
+      margin-bottom: 1.25rem;
+    }
+    .agent-tag { color: var(--muted); font-size: 0.88rem; margin: 0 0 0.85rem; }
+    .agent-bubbles { display: flex; flex-direction: column; gap: 0.55rem; }
+    .bubble {
+      background: var(--surface-raised);
+      border-left: 3px solid var(--accent);
+      border-radius: 0.5rem;
+      padding: 0.55rem 0.75rem;
+    }
+    .bubble .who {
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--accent-glow);
+    }
+    .bubble .said { margin-top: 0.2rem; }
   </style>
 </head>
 <body>
@@ -774,6 +854,12 @@
     <!-- Next Step Hint Line -->
     <div id="step-hint" class="hint-line">Next step: Tighten targeting to stop paying for Jules.</div>
 
+    <section class="agent-room" id="agent-room">
+      <h3 class="section-title">Agent room</h3>
+      <p id="agent-tag" class="agent-tag">Four jobs. Nobody fixes targeting and copy at once.</p>
+      <div id="agent-bubbles" class="agent-bubbles"></div>
+    </section>
+
     <!-- Export Action -->
     <div class="export-container">
       <button type="button" id="export-btn" class="export-btn">
@@ -807,7 +893,9 @@
 
     <!-- People Row -->
     <div>
-      <h3 class="section-title">Audience Verdicts</h3>
+      <div id="people-kicker" class="people-kicker">Wrong eyes · Wrong words</div>
+      <h3 id="people-heading" class="section-title">Wrong audience clicked — intended buyers refused</h3>
+      <p id="people-sub" class="people-sub">Jules is not a buyer. Klaus, Anika, and Mateo are — and they would not click.</p>
       <div id="people-container" class="people-grid">
         <!-- Rendered dynamically -->
       </div>
@@ -818,10 +906,22 @@
       <!-- Sponsored Ad -->
       <div class="preview-box">
         <div>
-          <div class="preview-title">Google Search Sponsored Ad</div>
+          <div class="preview-title">LinkedIn sponsored</div>
+            <div class="li-chrome">
+            <div id="li-avatar" class="li-avatar">N</div>
+            <div>
+              <div><strong id="li-company" style="color:#fff">Northline</strong> · <span class="promoted">Promoted</span></div>
+              <div id="li-url" class="url">northline.io/shiftboard</div>
+            </div>
+          </div>
           <div class="ad-body">
             <h4 id="ad-headline" class="ad-headline">The #1 Dashboard for Factory Performance</h4>
             <p id="ad-desc" class="ad-desc">Understand downtime and keep your operation moving.</p>
+          </div>
+          <div id="mock-board" class="mock-board">
+            <div class="board-row"><span>Line 2</span><span>running</span></div>
+            <div class="board-row"><span>Line 4</span><span class="down">18 min down</span></div>
+            <div class="board-row"><span>OEE</span><span>74%</span></div>
           </div>
         </div>
         <div>
@@ -832,13 +932,17 @@
       <!-- Landing Page -->
       <div class="preview-box">
         <div>
-          <div class="preview-title">Product Landing Page</div>
+          <div class="preview-title">Product landing page</div>
+          <div class="landing-nav">Product · Customers · Pricing</div>
           <div class="landing-body">
+            <div class="eyebrow" id="landing-eyebrow">Factory operations</div>
             <h4 id="page-headline" class="landing-headline">Understand shift performance</h4>
             <div id="page-highlight" class="landing-highlight"></div>
             <ul id="page-bullets" class="landing-bullets"></ul>
             <div id="page-proof" class="landing-proof"></div>
             <div id="page-price" class="landing-price">Price not shown</div>
+            <div id="price-slot" class="price-slot">Price not shown</div>
+            <div class="landing-nav" id="landing-legal">Northline GmbH · Düsseldorf · Simulated page</div>
           </div>
         </div>
         <div>
@@ -849,7 +953,12 @@
 
     <!-- Round 3 Email Block -->
     <div id="email-section" class="email-card" style="display: none;">
-      <div class="preview-title">Triggered Email Follow-Up (Sent on Conversion)</div>
+      <div class="preview-title">Follow-up email</div>
+      <div class="mail-chrome">
+        <div id="mail-from">From Lena Vogt &lt;lena@northline.io&gt;</div>
+        <div>To Plant manager</div>
+        <div>Thu 07:12</div>
+      </div>
       <div class="email-meta">
         <div>Subject: <span id="email-subject" class="email-subject">Understanding shift performance</span></div>
       </div>
@@ -872,14 +981,14 @@
     <!-- Custom Brief collapsed details -->
     <details id="details-custom">
       <summary>
-        <span>Custom brief (experimental)</span>
-        <span style="font-size: 0.8rem; color: var(--muted);">Run a custom evaluation</span>
+        <span>Custom brief</span>
+        <span style="font-size: 0.8rem; color: var(--muted);">Same three steps: leak → targeting → copy</span>
       </summary>
       <div class="details-content">
         <form id="brief-form" class="brief-form">
-          <textarea id="brief-input" class="brief-textarea" placeholder="Describe your product, its features, and real price. E.g., Northline: downtime dashboard starting from &euro;199/mo. 40 plants trust us."></textarea>
+          <textarea id="brief-input" class="brief-textarea" placeholder="Brand, who should buy it, and a real price. Example: Kicksly: stock alerts for independent shoe stores. 29 pounds per month."></textarea>
           <div class="brief-actions">
-            <button type="submit" id="custom-submit-btn" class="cta-button" style="width: auto;">Run custom campaign</button>
+            <button type="submit" id="custom-submit-btn" class="cta-button" style="width: auto;">Run as step 1, then use steps 2 and 3</button>
           </div>
           <div id="brief-error" class="brief-error"></div>
           <div id="brief-sample" class="brief-sample"></div>
@@ -931,27 +1040,45 @@
       const mode = document.getElementById('badge-mode');
       if (live) {
         mode.className = 'badge live';
-        mode.textContent = 'Live mode';
+        mode.textContent = 'Live Gemini';
       } else {
         mode.className = 'badge cached';
-        mode.textContent = 'Cached';
+        mode.textContent = 'Offline mock';
       }
     }
 
-    function renderPersonCard(p) {
-      const isJules = p.id === 'jules' || p.name.toLowerCase() === 'jules';
-      const roleBadge = isJules ? "Not a buyer · student" : "Buyer · plant manager";
+    function personTitle(p) {
+      const titles = {
+        klaus: 'Plant manager · NRW',
+        anika: 'Ops · Czech plant',
+        mateo: 'Plant manager · Catalonia',
+        jules: '22 · student · Lyon',
+      };
+      return p.title || titles[p.id] || (p.segment || '').replaceAll('_', ' ');
+    }
+
+    function isLeak(p) {
+      return p.is_icp === false || p.id === 'jules' || p.id === 'leak';
+    }
+
+    function renderPersonCard(p, round) {
+      const leak = isLeak(p);
+      const roleBadge = leak ? "Wrong audience · not a buyer" : "Intended buyer";
+      const frozen = (!leak && round === 2 && p.reached && !p.would_click)
+        ? '<div class="frozen-tag">Same ad as step 1</div>'
+        : '';
       
-      if (isJules) {
+      if (leak) {
         if (!p.reached) {
           return `
             <div class="person-card unreached-card">
               <div>
                 <div class="person-meta">${roleBadge}</div>
                 <div class="person-name">${p.name}</div>
+                <div class="person-title">${personTitle(p)}</div>
               </div>
               <div class="person-verdict unreached">Not reached this round</div>
-              <div class="person-reason" style="margin-top: 1rem;">Targeting excludes students. Budget preserved.</div>
+              <div class="person-reason" style="margin-top: 1rem;">Dropped from targeting. This is the right audience, not a change of mind.</div>
             </div>
           `;
         } else {
@@ -961,24 +1088,25 @@
                 <div class="wasted-tag">WASTED SPEND</div>
                 <div class="person-meta">${roleBadge}</div>
                 <div class="person-name">${p.name}</div>
+                <div class="person-title">${personTitle(p)}</div>
               </div>
               <div class="person-verdict yes">Would click</div>
               <p class="person-quote">“${p.quote || "This sounds like something interesting."}”</p>
-              <div class="person-reason">Jules is a curious student but has no budget or plant. Wastes ad dollars.</div>
+              <div class="person-reason">${p.reason || "Not the buyer. Paying for this click is the targeting leak."}</div>
             </div>
           `;
         }
       } else {
-        // Buyer
         if (!p.reached) {
           return `
             <div class="person-card unreached-card">
               <div>
                 <div class="person-meta">${roleBadge}</div>
                 <div class="person-name">${p.name}</div>
+                <div class="person-title">${personTitle(p)}</div>
               </div>
               <div class="person-verdict unreached">Not reached this round</div>
-              <div class="person-reason" style="margin-top: 1rem;">Buyer was missed by broad/weak filters.</div>
+              <div class="person-reason" style="margin-top: 1rem;">Buyer was missed by the audience filters.</div>
             </div>
           `;
         } else if (p.would_click) {
@@ -987,6 +1115,7 @@
               <div>
                 <div class="person-meta">${roleBadge}</div>
                 <div class="person-name">${p.name}</div>
+                <div class="person-title">${personTitle(p)}</div>
               </div>
               <div class="person-verdict yes">Would click</div>
               <p class="person-quote">“${p.quote}”</p>
@@ -994,15 +1123,20 @@
             </div>
           `;
         } else {
+          const reason = round === 2
+            ? ((p.reason || "Would not click.") + " Copy is unchanged — targeting did not rewrite the words.")
+            : (p.reason || "Would not click.");
           return `
             <div class="person-card danger-card">
               <div>
+                ${frozen}
                 <div class="person-meta">${roleBadge}</div>
                 <div class="person-name">${p.name}</div>
+                <div class="person-title">${personTitle(p)}</div>
               </div>
               <div class="person-verdict no">Would not click</div>
               <p class="person-quote">“${p.quote}”</p>
-              <div class="person-reason">${p.reason}</div>
+              <div class="person-reason">${reason}</div>
             </div>
           `;
         }
@@ -1015,30 +1149,62 @@
       const accuracy = Math.round(data.targeting_accuracy || 0);
 
       // Render Story banner
+      const chapter = data.chapter || {};
       const banner = document.getElementById('story-banner');
       banner.className = `story-banner r${r || '1'}`;
-      document.getElementById('story-content').innerHTML = narratives[r] || `Custom Campaign evaluated. Metrics and creative previews simulated.`;
+      const storyPrefix = (chapter.eyes && chapter.words)
+        ? `<strong>${chapter.eyes} · ${chapter.words}</strong> — `
+        : '';
+      document.getElementById('story-content').innerHTML = storyPrefix + (chapter.body || narratives[r] || 'Campaign evaluated.');
+
+      const kicker = document.getElementById('people-kicker');
+      const heading = document.getElementById('people-heading');
+      const sub = document.getElementById('people-sub');
+      if (kicker) kicker.textContent = (chapter.eyes && chapter.words) ? `${chapter.eyes} · ${chapter.words}` : 'Audience';
+      if (heading) heading.textContent = chapter.people_title || 'Audience verdicts';
+      if (sub) sub.textContent = chapter.people_sub || '';
 
       // Render metrics
       document.getElementById('metric-accuracy').textContent = `${accuracy}%`;
       const accuracySubText = document.getElementById('metric-accuracy-text');
-      if (r === 1) {
-        accuracySubText.textContent = "Broad targeting leaked to students & engineers.";
-      } else if (r >= 2) {
-        accuracySubText.textContent = "Tight targeting restricted only to plant managers.";
-      } else {
-        accuracySubText.textContent = `Targeting accuracy score: ${accuracy}%`;
-      }
+      accuracySubText.textContent = chapter.accuracy_sub || (r === 1
+        ? "Broad targeting leaked to students and other off-ICP roles."
+        : r >= 2
+          ? "Student dropped. Intended roles only."
+          : `Targeting accuracy: ${accuracy}%`);
 
       document.getElementById('metric-purchase').textContent = data.icp_purchase_rate || "0/3";
 
       // Render people
       const peopleContainer = document.getElementById('people-container');
-      peopleContainer.innerHTML = (data.personas || []).map(renderPersonCard).join('');
+      peopleContainer.innerHTML = (data.personas || []).map((p) => renderPersonCard(p, r)).join('');
 
       // Render Ad Creative
       document.getElementById('ad-headline').textContent = c.ad.headline;
       document.getElementById('ad-desc').textContent = c.ad.body;
+      const companyName = c.company || 'Campaign';
+      const isNorthline = (data.lab || 'northline') === 'northline' && companyName === 'Northline';
+      const slug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 18) || 'offer';
+      const avatar = document.getElementById('li-avatar');
+      const liCompany = document.getElementById('li-company');
+      const liUrl = document.getElementById('li-url');
+      if (avatar) avatar.textContent = companyName.charAt(0).toUpperCase();
+      if (liCompany) liCompany.textContent = companyName;
+      if (liUrl) liUrl.textContent = isNorthline ? 'northline.io/shiftboard' : (slug + '.example/offer');
+      const mockBoard = document.getElementById('mock-board');
+      if (mockBoard) mockBoard.style.display = isNorthline ? '' : 'none';
+      const eyebrow = document.getElementById('landing-eyebrow');
+      if (eyebrow) eyebrow.textContent = isNorthline ? 'Factory operations' : (companyName + ' · simulated');
+      const legal = document.getElementById('landing-legal');
+      if (legal) legal.textContent = isNorthline
+        ? 'Northline GmbH · Düsseldorf · Simulated page'
+        : (companyName + ' · Simulated page');
+      const mailFrom = document.getElementById('mail-from');
+      if (mailFrom) {
+        mailFrom.textContent = isNorthline
+          ? 'From Lena Vogt <lena@northline.io>'
+          : ('From campaign <hello@' + slug + '.example>');
+      }
       const adCta = document.getElementById('ad-cta');
       adCta.textContent = c.ad.cta;
       if (c.ad.cta === 'Learn more') {
@@ -1080,12 +1246,15 @@
       }
 
       const priceEl = document.getElementById('page-price');
+      const priceSlot = document.getElementById('price-slot');
       if (c.page.price) {
         priceEl.textContent = c.page.price;
         priceEl.className = 'landing-price';
+        if (priceSlot) priceSlot.textContent = c.page.price + ' · per site, billed monthly';
       } else {
         priceEl.textContent = 'Price not shown';
         priceEl.className = 'landing-price missing';
+        if (priceSlot) priceSlot.textContent = 'Price not shown';
       }
 
       const pageCta = document.getElementById('page-cta');
@@ -1106,7 +1275,36 @@
         emailSection.style.display = 'none';
       }
 
-      // Render Agent activity
+      // Render Agent room
+      const bubbles = document.getElementById('agent-bubbles');
+      const tag = document.getElementById('agent-tag');
+      const turns = data.agent_turns && data.agent_turns.length
+        ? data.agent_turns
+        : (data.agent_feed || []).map((line) => ({ role: line.split(':')[0], name: line.split(':')[0], text: line }));
+      if (tag) {
+        tag.textContent = data.live
+          ? 'Live graph — Sampler, Optimizer, shoppers, Critic.'
+          : 'Offline mock of the same graph (no live model this run).';
+      }
+      if (bubbles) {
+      bubbles.innerHTML = '';
+      turns.forEach((turn, i) => {
+        const div = document.createElement('div');
+        div.className = 'bubble';
+        const who = document.createElement('div');
+        who.className = 'who';
+        who.textContent = turn.role === 'Persona'
+          ? ('Shopper · ' + turn.name)
+          : (turn.role === 'Brief' ? 'Brief · model read your brief' : turn.role);
+        const said = document.createElement('div');
+        said.className = 'said';
+        said.textContent = turn.text;
+        div.appendChild(who);
+        div.appendChild(said);
+        bubbles.appendChild(div);
+      });
+      }
+
       const feedList = document.getElementById('feed-list');
       feedList.innerHTML = '';
       if (data.agent_feed && data.agent_feed.length) {
@@ -1154,11 +1352,11 @@
       // Hint line update
       const hint = document.getElementById('step-hint');
       if (r === 1) {
-        hint.innerHTML = 'Next step: <strong style="color:white;">Tighten targeting</strong> — stop paying for Jules.';
+        hint.innerHTML = 'Next step: <strong style="color:white;">Tighten targeting</strong> — stop paying for the wrong audience.';
       } else if (r === 2) {
-        hint.innerHTML = 'Next step: <strong style="color:white;">Fix the copy</strong> — add transparent pricing and proof.';
+        hint.innerHTML = 'Next step: <strong style="color:white;">Fix the copy</strong> — right people still need the right words.';
       } else if (r === 3) {
-        hint.innerHTML = '<span style="color:var(--success);">🎉 Campaign Optimized!</span> Both targeting and copywriting are working.';
+        hint.innerHTML = '<span style="color:var(--success);">Right eyes and right words.</span> Targeting stayed tight; copy is why buyers click.';
       } else {
         hint.textContent = '';
       }
@@ -1244,7 +1442,7 @@
       document.getElementById('story-content').innerHTML = `
         <div class="loading-container">
           <span class="spinner-inner"></span>
-          <span>Running custom targeting & copywriting evaluations...</span>
+          <span>Reading the brief — brand, price, audience — then running step 1...</span>
         </div>
       `;
 
@@ -1263,10 +1461,12 @@
           document.getElementById('story-content').textContent = 'Custom campaign execution failed.';
           return;
         }
-        state.currentRound = 0; // custom marker
+        state.currentRound = 1;
+        state.completed = { 1: true, 2: false, 3: false };
         render(data);
         updateStepButtons();
-        showToast('Custom campaign analyzed!');
+        sampleBox.textContent = 'This is step 1 of your brief. Click Step 2 (right eyes, same words), then Step 3 (right words). Refresh to return to Northline.';
+        showToast('Step 1 ready — now use steps 2 and 3.');
       } catch (err) {
         errBox.textContent = 'Request failed. Make sure the server is up.';
         document.getElementById('story-content').textContent = 'Custom campaign execution failed.';
@@ -1278,6 +1478,9 @@
 
     // Initial load
     async function boot() {
+      try {
+        await fetch('/api/lab/reset', { method: 'POST' });
+      } catch (e) {}
       try {
         const res = await fetch('/api/status');
         if (res.ok) {

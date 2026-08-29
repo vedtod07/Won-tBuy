@@ -58,7 +58,9 @@ def test_jules_round1_would_click():
 
 
 def test_jules_round2_not_reached():
-    result = evaluate_persona(_jules(), {}, 2)
+    jules = _jules()
+    jules["reached"] = False
+    result = evaluate_persona(jules, {}, 2)
     assert result["reached"] is False
     assert result["status"] == "Not reached this round"
     assert "verdict" not in result
@@ -66,7 +68,9 @@ def test_jules_round2_not_reached():
 
 
 def test_jules_round3_not_reached():
-    result = evaluate_persona(_jules(), {}, 3)
+    jules = _jules()
+    jules["reached"] = False
+    result = evaluate_persona(jules, {}, 3)
     assert result["reached"] is False
     assert result["status"] == "Not reached this round"
     assert "verdict" not in result

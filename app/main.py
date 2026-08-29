@@ -6,12 +6,10 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel as PydBaseModel
 
-from app.agents.critic import cached_critic_summary, critic_summary
-from app.agents.optimizer import optimize_copy, tighten_targeting
-from app.agents.personas import cached_verdict, evaluate_persona
-from app.impressions import sample_impressions, targeting_accuracy
-from app.llm import CacheFallback, live_key_present
-from app.models import Campaign, CompanySize, Creative, Industry, LandingPage, Region, Role, Targeting
+from app.agents.brief import BriefError, interpret_brief, parse_price
+from app.agents.graph import run_lab_round
+from app.agents.optimizer import FIXED_PRICE
+from app.llm import live_key_present
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,64 +26,37 @@ def read_fixture(round_number: int) -> dict:
         return json.load(fixture)
 
 
+_lab: dict = {
+    "client": None,
+    "price": FIXED_PRICE,
+    "northline": True,
+    "briefing": None,
+}
+
+
+def reset_lab() -> None:
+    _lab["client"] = None
+    _lab["price"] = FIXED_PRICE
+    _lab["northline"] = True
+    _lab["briefing"] = None
+
+
+def activate_custom_lab(briefing: dict) -> None:
+    _lab["client"] = briefing["campaign"]
+    _lab["price"] = briefing["price"]
+    _lab["northline"] = False
+    _lab["briefing"] = briefing
+
+
 def load_round(round_number: int, use_cache: bool = False) -> dict:
-    payload = read_fixture(round_number)
-    campaign = Campaign.model_validate(payload["campaign"])
-
-    if round_number == 2:
-        round_one = Campaign.model_validate(read_fixture(1)["campaign"])
-        campaign = tighten_targeting(round_one)
-    elif round_number == 3:
-        round_two = Campaign.model_validate(read_fixture(2)["campaign"])
-        campaign = optimize_copy(round_two, campaign, use_cache=use_cache)
-
-    campaign_data = campaign.model_dump(mode="json")
-    impressions = sample_impressions(campaign.targeting)
-    accuracy = targeting_accuracy(impressions)
-
-    feed = []
-    feed.append(f"Sampler: generated {len(impressions)} simulated impressions (seed 42)")
-    feed.append(f"Sampler: {accuracy}% targeting accuracy")
-    if round_number == 2:
-        feed.append("Optimizer: tightened targeting — manufacturing, plant_manager + operations_manager, europe")
-    elif round_number == 3:
-        feed.append("Optimizer: fixed copy — price added, #1 removed, CTA changed to Book a demo")
-
-    evaluated_personas = []
-    for fixture_persona in payload["personas"]:
-        try:
-            evaluation = evaluate_persona(fixture_persona, campaign_data, round_number, use_cache=use_cache)
-            evaluated_personas.append({**fixture_persona, **evaluation})
-            if not evaluation.get("reached"):
-                feed.append(f"Persona: {fixture_persona['name']} not reached — skipped")
-            elif evaluation.get("would_click"):
-                feed.append(f"Persona: {fixture_persona['name']} evaluated — Would click")
-            else:
-                feed.append(f"Persona: {fixture_persona['name']} evaluated — Would not click")
-        except CacheFallback:
-            evaluated_personas.append(fixture_persona)
-            if not fixture_persona.get("reached"):
-                feed.append(f"Persona: {fixture_persona['name']} not reached — skipped (cached)")
-            elif fixture_persona.get("would_click"):
-                feed.append(f"Persona: {fixture_persona['name']} (cached) — Would click")
-            else:
-                feed.append(f"Persona: {fixture_persona['name']} (cached) — Would not click")
-
-    try:
-        summary = critic_summary(accuracy, use_cache=use_cache)
-        feed.append(f"Critic: {summary}")
-    except CacheFallback:
-        summary = cached_critic_summary(accuracy)
-        feed.append(f"Critic (cached): {summary}")
-
-    payload["campaign"] = campaign_data
-    payload["personas"] = evaluated_personas
-    payload["impressions"] = impressions
-    payload["targeting_accuracy"] = accuracy
-    payload["critic_summary"] = summary
-    payload["agent_feed"] = feed
-    payload["icp_purchase_rate"] = f"{sum(1 for p in evaluated_personas if p.get('is_icp') and p.get('reached') and p.get('would_click'))}/{sum(1 for p in evaluated_personas if p.get('is_icp') and p.get('reached'))}"
-    return payload
+    return run_lab_round(
+        round_number,
+        use_cache=use_cache,
+        client=_lab["client"],
+        required_price=_lab["price"],
+        northline=_lab["northline"],
+        briefing=_lab.get("briefing"),
+    )
 
 
 def build_campaign_markdown() -> str:
@@ -205,31 +176,19 @@ SAMPLE_BRIEF = (
 )
 
 
-def build_custom_campaign(brief: str) -> Campaign:
-    words = [w for w in brief.replace("\n", " ").split(" ") if w]
-    company = words[0].strip(",.!?:;") if words else "Your product"
-    first_sentence = brief.split(".")[0].strip().strip(",.!?:;")
-    headline = first_sentence if first_sentence else f"{company} — see it before it costs you"
+def extract_price(brief: str) -> str | None:
+    return parse_price(brief)
 
-    targeting = Targeting(
-        industries=[Industry.MANUFACTURING, Industry.TECHNOLOGY],
-        roles=[Role.PLANT_MANAGER, Role.OPERATIONS_MANAGER, Role.ENGINEER],
-        company_sizes=[CompanySize.SMALL, CompanySize.MEDIUM, CompanySize.LARGE],
-        regions=[Region.EUROPE, Region.NORTH_AMERICA],
-    )
-    return Campaign(
-        company=company,
-        targeting=targeting,
-        ad=Creative(headline=headline, body=brief.strip(), cta="Learn more"),
-        page=LandingPage(
-            headline=headline,
-            body=brief.strip(),
-            bullets=[],
-            proof=None,
-            cta="Learn more",
-            price=None,
-        ),
-    )
+
+def build_custom_campaign(brief: str, use_cache: bool = True):
+    """Kept for tests: interpret the brief into a leaky round-1 campaign."""
+    return interpret_brief(brief, use_cache=use_cache)["campaign"]
+
+
+@app.post("/api/lab/reset")
+def lab_reset() -> dict:
+    reset_lab()
+    return {"ok": True, "lab": "northline"}
 
 
 @app.post("/api/custom")
@@ -242,44 +201,19 @@ def custom_campaign(req: BriefRequest, use_cache: bool = False) -> dict:
         }
     if len(brief) < 10:
         return {
-            "error": "Brief is too short — add at least a product name and target buyer.",
+            "error": "Brief is too short — add at least a product name, who should buy it, and a price.",
             "sample": SAMPLE_BRIEF,
         }
 
-    campaign = build_custom_campaign(brief)
-    campaign_data = campaign.model_dump(mode="json")
-    impressions = sample_impressions(campaign.targeting)
-    accuracy = targeting_accuracy(impressions)
-
-    # Reuse the persona profiles to judge the custom campaign, deriving
-    # verdicts from the custom copy rather than the Northline fixture.
-    base = read_fixture(1)
-    personas = []
-    for fixture_persona in base["personas"]:
-        try:
-            evaluation = evaluate_persona(fixture_persona, campaign_data, 1, use_cache=use_cache)
-            personas.append({**fixture_persona, **evaluation})
-        except CacheFallback:
-            personas.append({**fixture_persona, **cached_verdict(fixture_persona, campaign_data)})
-
     try:
-        summary = critic_summary(accuracy, use_cache=use_cache)
-    except CacheFallback:
-        summary = cached_critic_summary(accuracy)
+        briefing = interpret_brief(brief, use_cache=use_cache)
+    except BriefError as error:
+        return {
+            "error": str(error),
+            "sample": "Brightside Dental: recall SMS for UK dentists. 49 pounds per month.",
+        }
 
-    purchase = f"{sum(1 for p in personas if p.get('is_icp') and p.get('reached') and p.get('would_click'))}/{sum(1 for p in personas if p.get('is_icp') and p.get('reached'))}"
-    return {
-        "round": 0,
-        "mode": "simulated",
-        "campaign": campaign_data,
-        "personas": personas,
-        "impressions": impressions,
-        "targeting_accuracy": accuracy,
-        "icp_purchase_rate": purchase,
-        "critic_summary": summary,
-        "agent_feed": [
-            f"Sampler: generated {len(impressions)} simulated impressions (seed 42)",
-            f"Sampler: {accuracy}% targeting accuracy",
-            f"Brief: built a custom campaign for '{campaign.company}'",
-        ],
-    }
+    activate_custom_lab(briefing)
+    payload = load_round(1, use_cache=use_cache)
+    payload["agent_feed"] = payload.get("agent_feed") or []
+    return payload

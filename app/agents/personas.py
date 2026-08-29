@@ -1,6 +1,6 @@
 import json
 
-from app.llm import CacheFallback, chat_json
+from app.llm import CacheFallback, chat_json, live_key_present, use_cache_requested
 
 
 PERSONAS = {
@@ -10,54 +10,86 @@ PERSONAS = {
         "role": "plant manager",
         "location": "Germany",
         "trait": "hates slogans without numbers",
+        "objection": "proof",
+        "is_icp": True,
     },
     "anika": {
         "name": "Anika",
         "role": "plant manager",
         "trait": "will not click when the price is missing",
+        "objection": "price",
+        "is_icp": True,
     },
     "mateo": {
         "name": "Mateo",
         "role": "plant manager",
         "trait": "rejects unsourced ranking claims",
+        "objection": "ranking",
+        "is_icp": True,
     },
     "jules": {
         "name": "Jules",
         "age": 22,
         "role": "student with a side hustle",
         "trait": "likes products that sound like a hot operating system",
+        "is_icp": False,
     },
 }
+
+_ID_OBJECTION = {"klaus": "proof", "anika": "price", "mateo": "ranking"}
 
 
 def evaluate_persona(persona: dict, campaign: dict, round_number: int, use_cache: bool = False) -> dict:
     persona_id = persona["id"]
-    if not persona["reached"]:
+    if not persona.get("reached"):
         return {
             "id": persona_id,
             "reached": False,
             "status": "Not reached this round",
         }
 
-    if persona_id == "jules":
-        if round_number != 1:
-            return {
-                "id": persona_id,
-                "reached": False,
-                "status": "Not reached this round",
-            }
-        return {
-            "id": persona_id,
-            "reached": True,
-            "verdict": "buy",
-            "would_click": True,
-            "quote": "It sounds like a hot new operating system.",
-            "reason": "Jules is curious about the branding but is not a B2B factory-software buyer.",
-        }
+    grounded = cached_verdict(persona, campaign)
+    if use_cache_requested(use_cache) or not live_key_present():
+        return grounded
 
-    profile = PERSONAS[persona_id]
+    try:
+        live = _llm_verdict(persona, campaign, use_cache)
+    except CacheFallback:
+        return grounded
+    return {
+        **grounded,
+        "quote": str(live.get("quote") or grounded.get("quote") or ""),
+        "reason": str(live.get("reason") or grounded.get("reason") or ""),
+    }
+
+
+def evaluate_shopper(persona: dict, campaign: dict, use_cache: bool = False) -> dict:
+    """Graph entry: reach is already set from targeting, not from round number."""
+    return evaluate_persona(persona, campaign, 0, use_cache=use_cache)
+
+
+def _profile(persona: dict) -> dict:
+    stored = PERSONAS.get(persona["id"], {})
+    return {
+        "name": persona.get("name") or stored.get("name"),
+        "title": persona.get("title") or persona.get("segment") or stored.get("role"),
+        "trait": persona.get("trait") or stored.get("trait"),
+        "is_icp": persona.get("is_icp", stored.get("is_icp", True)),
+        "objection": persona.get("objection") or stored.get("objection"),
+    }
+
+
+def _llm_verdict(persona: dict, campaign: dict, use_cache: bool) -> dict:
+    persona_id = persona["id"]
+    profile = _profile(persona)
+    extra = ""
+    if not profile.get("is_icp"):
+        extra = (
+            " You are not the intended buyer and will never pay. "
+            "If the ad sounds broadly appealing, set would_click true."
+        )
     result = chat_json(
-        "You simulate one buyer reaction. Return JSON only. Do not alter the campaign.",
+        "You simulate one buyer reaction." + extra + " Return JSON only. Do not alter the campaign.",
         json.dumps(
             {
                 "persona": profile,
@@ -91,23 +123,23 @@ def evaluate_persona(persona: dict, campaign: dict, round_number: int, use_cache
 
 
 def cached_verdict(persona: dict, campaign: dict) -> dict:
-    """Deterministic verdict used when the LLM is unavailable (USE_CACHE or no key).
-
-    Derives each ICP persona's reaction from the campaign copy actually present,
-    so cards stay coherent for custom briefs as well as the Northline fixture.
-    """
+    """Deterministic verdict from the copy actually on the page."""
     persona_id = persona["id"]
     if not persona.get("reached", True):
         return {"id": persona_id, "reached": False, "status": "Not reached this round"}
 
-    if persona_id == "jules":
+    is_icp = persona.get("is_icp")
+    if is_icp is None:
+        is_icp = persona_id not in {"jules", "leak"}
+    if not is_icp:
+        name = persona.get("name") or "This person"
         return {
             "id": persona_id,
             "reached": True,
             "verdict": "buy",
             "would_click": True,
             "quote": "It sounds like a hot new operating system.",
-            "reason": "Jules is curious about the branding but is not the B2B buyer.",
+            "reason": f"{name} is curious about the branding but is not the buyer.",
         }
 
     copy = " ".join(
@@ -121,8 +153,9 @@ def cached_verdict(persona: dict, campaign: dict) -> dict:
     ).lower()
     has_price = bool(campaign.get("page", {}).get("price"))
     has_ranking = "#1" in copy or "best in the world" in copy
+    objection = persona.get("objection") or _ID_OBJECTION.get(persona_id, "price")
 
-    if persona_id == "klaus":
+    if objection == "proof":
         if has_ranking or not has_price:
             return {
                 "id": persona_id,
@@ -141,7 +174,7 @@ def cached_verdict(persona: dict, campaign: dict) -> dict:
             "reason": "Proof and price are present, so the objection clears.",
         }
 
-    if persona_id == "anika":
+    if objection == "price":
         if not has_price:
             return {
                 "id": persona_id,
@@ -160,30 +193,20 @@ def cached_verdict(persona: dict, campaign: dict) -> dict:
             "reason": "The price is present, so the blocker is gone.",
         }
 
-    if persona_id == "mateo":
-        if has_ranking:
-            return {
-                "id": persona_id,
-                "reached": True,
-                "verdict": "object",
-                "would_click": False,
-                "quote": "Who says that? There's no source.",
-                "reason": "Rejects an unsourced ranking claim.",
-            }
+    if has_ranking:
         return {
             "id": persona_id,
             "reached": True,
-            "verdict": "buy",
-            "would_click": True,
-            "quote": "No fake claims, just what it does. Yes.",
-            "reason": "No unsourced ranking claim in the copy.",
+            "verdict": "object",
+            "would_click": False,
+            "quote": "Who says that? There's no source.",
+            "reason": "Rejects an unsourced ranking claim.",
         }
-
     return {
         "id": persona_id,
         "reached": True,
-        "verdict": "ignore",
-        "would_click": False,
-        "quote": "Not sure this is for me.",
-        "reason": "No strong objection, but nothing compelling either.",
+        "verdict": "buy",
+        "would_click": True,
+        "quote": "No fake claims, just what it does. Yes.",
+        "reason": "No unsourced ranking claim in the copy.",
     }

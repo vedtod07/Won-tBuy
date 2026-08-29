@@ -9,7 +9,23 @@ import os
 os.environ["USE_CACHE"] = "1"
 os.environ.pop("LLM_API_KEY", None)
 
-from app.main import load_round
+import pytest
+
+from app.main import (
+    activate_custom_lab,
+    build_custom_campaign,
+    extract_price,
+    load_round,
+    reset_lab,
+)
+from app.agents.brief import interpret_brief
+
+
+@pytest.fixture(autouse=True)
+def _reset_lab_state():
+    reset_lab()
+    yield
+    reset_lab()
 
 
 def test_round_one_keys():
@@ -20,6 +36,10 @@ def test_round_one_keys():
     assert "targeting_accuracy" in data
     assert "critic_summary" in data
     assert "agent_feed" in data
+    assert "agent_turns" in data
+    assert "chapter" in data
+    assert data["chapter"]["eyes"] == "Wrong eyes"
+    assert data["chapter"]["words"] == "Wrong words"
 
 
 def test_round_one_accuracy_is_40():
@@ -99,6 +119,15 @@ def test_agent_feed_is_populated():
     assert any("Persona" in line for line in feed)
 
 
+def test_agent_turns_follow_graph_order():
+    turns = load_round(1)["agent_turns"]
+    roles = [row["role"] for row in turns]
+    assert roles[0] == "Optimizer"
+    assert "Sampler" in roles
+    assert roles.count("Persona") == 4
+    assert roles[-1] == "Critic"
+
+
 def test_critic_summary_present():
     assert load_round(1)["critic_summary"] is not None
     assert isinstance(load_round(1)["critic_summary"], str)
@@ -106,3 +135,74 @@ def test_critic_summary_present():
 
 def test_impressions_count_is_80():
     assert len(load_round(1)["impressions"]) == 80
+
+
+def test_round_two_chapter_is_right_eyes_wrong_words():
+    data = load_round(2)
+    assert data["chapter"]["eyes"] == "Right eyes"
+    assert data["chapter"]["words"] == "Wrong words"
+    assert data["icp_purchase_rate"] == "0/3"
+
+
+def test_round_three_chapter_is_right_eyes_right_words():
+    data = load_round(3)
+    assert data["chapter"]["eyes"] == "Right eyes"
+    assert data["chapter"]["words"] == "Right words"
+    assert data["icp_purchase_rate"] == "3/3"
+
+
+def test_extract_price_from_brief():
+    assert extract_price("Acme from $49/mo for plants") == "from $49/mo"
+    assert extract_price("From €199/mo. Proof: 40 plants.") == "from €199/mo"
+    assert extract_price("49 pounds per moth") == "from £49/mo"
+    assert extract_price("49 pounds per month") == "from £49/mo"
+    assert extract_price("no number here") is None
+
+
+def test_custom_round_one_is_leaky():
+    campaign = build_custom_campaign("Acme: downtime board for plant managers. From $49/mo.")
+    assert "student" in campaign.targeting.roles
+    assert campaign.page.price is None
+    assert "#1" in campaign.ad.headline
+    assert campaign.ad.cta == "Learn more"
+
+
+def test_custom_three_steps_match_northline_story():
+    brief = "Acme: downtime board for plant managers. From $49/mo."
+    briefing = interpret_brief(brief, use_cache=True)
+    activate_custom_lab(briefing)
+
+    round_one = load_round(1)
+    assert round_one["lab"] == "custom"
+    assert round_one["chapter"]["eyes"] == "Wrong eyes"
+    assert round_one["chapter"]["words"] == "Wrong words"
+    leak = next(row for row in round_one["personas"] if row.get("is_icp") is False)
+    assert leak["reached"] is True
+    assert leak["would_click"] is True
+    assert round_one["icp_purchase_rate"] == "0/3"
+    assert round_one["agent_turns"][0]["role"] == "Brief"
+    assert round_one["briefing"]["price"] == "from $49/mo"
+
+    round_two = load_round(2)
+    assert round_two["chapter"]["eyes"] == "Right eyes"
+    assert round_two["chapter"]["words"] == "Wrong words"
+    leak_two = next(row for row in round_two["personas"] if row.get("is_icp") is False)
+    assert leak_two["reached"] is False
+    assert round_two["campaign"]["ad"] == round_one["campaign"]["ad"]
+    assert round_two["campaign"]["page"]["price"] is None
+    assert round_two["icp_purchase_rate"] == "0/3"
+
+    round_three = load_round(3)
+    assert round_three["chapter"]["words"] == "Right words"
+    assert round_three["campaign"]["page"]["price"] == "from $49/mo"
+    assert round_three["campaign"]["ad"]["cta"] == "Book a demo"
+    assert round_three["icp_purchase_rate"] == "3/3"
+    copy = " ".join(
+        [
+            round_three["campaign"]["ad"]["headline"],
+            round_three["campaign"]["ad"]["body"],
+            round_three["campaign"]["page"]["headline"],
+            round_three["campaign"]["page"]["body"],
+        ]
+    ).lower()
+    assert "#1" not in copy

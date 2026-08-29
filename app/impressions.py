@@ -5,45 +5,43 @@ from app.models import Targeting
 
 SEED = 42
 IMPRESSION_COUNT = 80
-ICP_ROLES = {"plant_manager", "operations_manager"}
+DEFAULT_LEAK_ROLES = {"student"}
 
 
-def icp_probability(targeting: Targeting) -> float:
-    industries = {industry.value for industry in targeting.industries}
-    roles = {role.value for role in targeting.roles}
-    regions = {region.value for region in targeting.regions}
+def _val(item) -> str:
+    return item.value if hasattr(item, "value") else str(item)
 
-    is_tight = (
-        industries == {"manufacturing"}
-        and roles <= ICP_ROLES
-        and bool(roles)
-        and regions == {"europe"}
-    )
-    return 0.85 if is_tight else 0.40
+
+def icp_probability(targeting: Targeting, leak_roles: set[str] | None = None) -> float:
+    roles = {_val(role) for role in targeting.roles}
+    leaks = leak_roles or DEFAULT_LEAK_ROLES
+    return 0.40 if roles & leaks else 0.85
 
 
 def sample_impressions(
     targeting: Targeting,
     n: int = IMPRESSION_COUNT,
     seed: int = SEED,
+    leak_roles: set[str] | None = None,
 ) -> list[dict]:
     rng = random.Random(seed)
-    target_icp_count = round(n * icp_probability(targeting))
+    leaks = leak_roles or DEFAULT_LEAK_ROLES
+    target_icp_count = round(n * icp_probability(targeting, leaks))
     in_icp_flags = [True] * target_icp_count + [False] * (n - target_icp_count)
     rng.shuffle(in_icp_flags)
 
-    industries = [industry.value for industry in targeting.industries]
-    roles = [role.value for role in targeting.roles]
-    company_sizes = [size.value for size in targeting.company_sizes]
-    regions = [region.value for region in targeting.regions]
+    industries = [_val(industry) for industry in targeting.industries]
+    roles = [_val(role) for role in targeting.roles]
+    company_sizes = [_val(size) for size in targeting.company_sizes]
+    regions = [_val(region) for region in targeting.regions]
+    icp_roles = [role for role in roles if role not in leaks] or roles
 
     impressions = []
     for index, in_icp in enumerate(in_icp_flags, start=1):
         if in_icp:
-            industry = "manufacturing" if "manufacturing" in industries else rng.choice(industries)
-            eligible_roles = [role for role in roles if role in ICP_ROLES]
-            role = rng.choice(eligible_roles or roles)
-            region = "europe" if "europe" in regions else rng.choice(regions)
+            industry = industries[0]
+            role = rng.choice(icp_roles)
+            region = regions[0]
         else:
             industry = rng.choice(industries)
             role = rng.choice(roles)
