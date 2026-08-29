@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel as PydBaseModel
@@ -9,7 +10,7 @@ from app.agents.critic import cached_critic_summary, critic_summary
 from app.agents.optimizer import optimize_copy, tighten_targeting
 from app.agents.personas import cached_verdict, evaluate_persona
 from app.impressions import sample_impressions, targeting_accuracy
-from app.llm import CacheFallback
+from app.llm import CacheFallback, live_key_present
 from app.models import Campaign, CompanySize, Creative, Industry, LandingPage, Region, Role, Targeting
 
 
@@ -18,6 +19,8 @@ FIXTURES_DIR = BASE_DIR / "fixtures"
 STATIC_DIR = BASE_DIR / "app" / "static"
 
 app = FastAPI(title="Won'tBuy", version="0.2.0")
+
+load_dotenv()
 
 
 def read_fixture(round_number: int) -> dict:
@@ -81,6 +84,7 @@ def load_round(round_number: int, use_cache: bool = False) -> dict:
     payload["targeting_accuracy"] = accuracy
     payload["critic_summary"] = summary
     payload["agent_feed"] = feed
+    payload["icp_purchase_rate"] = f"{sum(1 for p in evaluated_personas if p.get('is_icp') and p.get('reached') and p.get('would_click'))}/{sum(1 for p in evaluated_personas if p.get('is_icp') and p.get('reached'))}"
     return payload
 
 
@@ -158,6 +162,14 @@ def dashboard() -> FileResponse:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/status")
+def status() -> dict:
+    return {
+        "live": live_key_present(),
+        "mode": "live" if live_key_present() else "cached",
+    }
 
 
 @app.get("/api/round/1")

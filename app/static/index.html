@@ -17,312 +17,343 @@
       --accent: #7186f4;
       --warning: #f6c945;
       --success: #58d6a9;
-      --danger: #ff6f7d;
+      --danger: #e2708a;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); }
-    .banner { padding: .7rem 1rem; background: var(--warning); color: #211b00; text-align: center; font-weight: 800; }
-    main { width: min(1120px, calc(100% - 2rem)); margin: 3rem auto 5rem; }
-    .eyebrow { color: #9aabff; font-size: .78rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
-    h1 { margin: .45rem 0; font-size: clamp(2.8rem, 7vw, 5.3rem); line-height: .95; }
-    h2, h3 { margin-top: 0; }
-    p { color: var(--muted); line-height: 1.6; }
-    .intro { max-width: 62ch; font-size: 1.15rem; }
-    .rounds { display: flex; flex-wrap: wrap; gap: .75rem; margin: 2rem 0; align-items: center; }
-    button, .cta { border: 0; border-radius: .65rem; padding: .8rem 1rem; background: var(--accent); color: white; font-weight: 800; cursor: pointer; }
-    button:hover, button.active { background: #91a0fa; }
-    .dashboard { display: grid; gap: 1rem; }
-    .card { padding: 1.4rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--surface); }
-    .section-title { margin-bottom: .9rem; }
-    .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
-    .chip { padding: .45rem .7rem; border: 1px solid #405078; border-radius: 999px; background: #1b2744; color: #dce3ff; font-size: .85rem; }
-    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-    .metric strong { display: block; margin-top: .35rem; font-size: clamp(2rem, 5vw, 3.4rem); }
-    .campaign-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-    .preview { min-height: 270px; display: flex; flex-direction: column; justify-content: space-between; }
-    .preview-copy p { margin-bottom: 1.5rem; }
-    .price { color: var(--success); font-size: 1.1rem; font-weight: 800; }
-    .no-price { color: var(--danger); font-weight: 800; }
-    .personas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
-    .persona { position: relative; min-height: 190px; }
-    .persona strong { display: block; margin-bottom: .35rem; font-size: 1.25rem; }
-    .persona .verdict { margin-top: 1rem; font-weight: 800; color: var(--danger); }
-    .persona .click { color: var(--success); }
-    .persona .quote { font-style: italic; color: var(--text); margin: .6rem 0 .3rem; }
-    .persona.jules-alert { border: 2px solid var(--warning); background: linear-gradient(135deg, #3c3217, #211d2b); box-shadow: 0 0 0 4px rgb(246 201 69 / 12%); transform: translateY(-4px); }
-    .persona.jules-alert::before { content: "TARGETING LEAK"; position: absolute; top: -.75rem; right: .8rem; padding: .3rem .55rem; border-radius: .35rem; background: var(--warning); color: #211b00; font-size: .7rem; font-weight: 900; letter-spacing: .08em; }
-    .status { color: var(--warning); font-weight: 800; }
-    .error { color: var(--danger); }
-    .chart-bar { display: flex; align-items: flex-end; gap: .5rem; height: 200px; padding-top: 1rem; }
-    .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .4rem; }
-    .chart-col .bar-container { width: 100%; display: flex; align-items: flex-end; justify-content: center; height: 140px; }
-    .chart-col .bar { width: 60%; border-radius: .4rem .4rem 0 0; transition: height .3s; }
-    .chart-col .bar.accuracy { background: var(--accent); }
-    .chart-col .bar.purchase { background: var(--success); }
-    .chart-col .label { font-size: .8rem; color: var(--muted); }
-    .chart-col .value { font-size: .75rem; font-weight: 700; color: var(--text); }
-    .toggle-switch { display: flex; align-items: center; gap: .5rem; margin-left: auto; font-size: .85rem; color: var(--muted); }
-    .toggle-switch input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
-    .bullets { list-style: none; padding: 0; margin: .5rem 0 1rem; }
-    .bullets li { padding-left: 1.2rem; position: relative; color: var(--muted); margin-bottom: .35rem; }
-    .bullets li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
-    .proof { font-size: .9rem; color: var(--success); font-weight: 700; margin-bottom: 1rem; }
-    .highlight { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin: .5rem 0; padding-left: .8rem; border-left: 3px solid var(--accent); }
-    .brief-section { margin: 1rem 0; }
-    .brief-section summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 1.25rem 1.5rem 3rem; }
+
+    header.banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      padding: .65rem 1rem; margin-bottom: 1.25rem;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    }
+    .brand { font-weight: 700; font-size: 1.15rem; }
+    .brand .lab { color: var(--muted); font-weight: 500; font-size: .95rem; }
+    .mode-pill {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .3rem .7rem; border-radius: 999px; font-size: .8rem; font-weight: 600;
+      border: 1px solid var(--border);
+    }
+    .mode-pill.live { color: var(--success); border-color: var(--success); }
+    .mode-pill.cached { color: var(--warning); border-color: var(--warning); }
+    .sim-note { color: var(--muted); font-size: .8rem; text-align: right; }
+
+    .actions {
+      display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.25rem;
+    }
+    button.btn {
+      font: inherit; cursor: pointer;
+      background: var(--surface-raised); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: .55rem .95rem; font-weight: 600;
+      transition: background .15s ease, opacity .15s ease;
+    }
+    button.btn:hover:not(:disabled) { background: #22304f; }
+    button.btn:disabled { opacity: .45; cursor: not-allowed; }
+    button.btn.primary { background: var(--accent); color: #0b1020; border-color: var(--accent); }
+    button.btn.primary:hover:not(:disabled) { filter: brightness(1.08); }
+
+    .layout {
+      display: grid; grid-template-columns: 1fr 1.15fr; gap: 1.25rem; align-items: start;
+    }
+    @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1rem 1.15rem; margin-bottom: 1rem;
+    }
+    .eyebrow {
+      font-size: .72rem; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: .55rem; font-weight: 700;
+    }
+    .section-title { font-size: .8rem; }
+
+    .agent-panel { position: sticky; top: 1rem; }
+    .feed { list-style: none; padding: 0; margin: 0; min-height: 6rem; }
+    .feed li {
+      padding: .45rem .6rem; border-left: 2px solid var(--accent);
+      margin-bottom: .5rem; background: var(--surface-raised); border-radius: 4px;
+      font-size: .88rem; animation: feed-in .25s ease;
+    }
+    .feed li.role { color: var(--muted); font-size: .78rem; border-left-color: var(--border); }
+    @keyframes feed-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px; margin-right: .4rem;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .chip {
+      background: var(--surface-raised); border: 1px solid var(--border);
+      border-radius: 999px; padding: .2rem .65rem; font-size: .8rem; color: var(--muted);
+    }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin: .75rem 0; }
+    .metric {
+      background: var(--surface-raised); border: 1px solid var(--border);
+      border-radius: 10px; padding: .8rem .95rem; text-align: center;
+    }
+    .metric .value { font-size: 1.7rem; font-weight: 800; line-height: 1.1; }
+    .metric .label { font-size: .75rem; color: var(--muted); margin-top: .25rem; }
+
+    .ad-card, .preview { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-top: .5rem; }
+    .ad-card h2, .preview h2 { margin: 0 0 .4rem; font-size: 1.05rem; }
+    .ad-card p, .preview p { margin: 0 0 .6rem; color: var(--muted); }
+    .bullet { margin: .25rem 0 .25rem 1rem; color: var(--muted); }
+    .proof { color: var(--success); font-size: .85rem; margin: .5rem 0; font-weight: 600; }
+    .highlight { font-weight: 700; color: var(--accent); margin: .5rem 0; padding-left: .8rem; border-left: 3px solid var(--accent); }
+    .price { font-weight: 700; margin: .4rem 0; }
+
+    .cta-btn {
+      display: inline-block; cursor: default;
+      background: var(--accent); color: #0b1020; font-weight: 700;
+      border-radius: 8px; padding: .55rem 1.1rem; margin-top: .4rem;
+      box-shadow: 0 2px 0 rgba(0,0,0,.25);
+    }
+    .cta-btn.neutral { background: var(--surface); color: var(--text); border: 1px solid var(--border); box-shadow: none; }
+
+    .personas { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: .75rem; }
+    .persona {
+      background: var(--surface-raised); border: 1px solid var(--border);
+      border-radius: 10px; padding: .85rem .95rem;
+    }
+    .persona.loud { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(226,112,138,.35); }
+    .persona .name { font-weight: 700; }
+    .persona .seg { font-size: .72rem; color: var(--muted); margin-bottom: .4rem; }
+    .persona .verdict { font-weight: 700; margin: .4rem 0 .2rem; }
+    .persona .verdict.click { color: var(--success); }
+    .persona .verdict.noclick { color: var(--danger); }
+    .persona .verdict.unreached { color: var(--muted); }
+    .persona .quote { font-style: italic; color: var(--text); margin: .4rem 0 .2rem; }
+    .persona .reason { font-size: .82rem; color: var(--muted); }
+
+    .email-card { margin-top: .5rem; }
+    .email-card .subj { font-weight: 700; margin-bottom: .3rem; }
+    .email-card .body { color: var(--muted); white-space: pre-line; font-size: .88rem; }
+
+    details.brief-section { margin: 1rem 0; }
+    details.brief-section summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
     .brief-section form { display: flex; flex-direction: column; gap: .5rem; margin-top: .5rem; }
-    .brief-section textarea { width: 100%; padding: .5rem; border: 1px solid var(--border); border-radius: 6px; font: inherit; resize: vertical; }
-    .brief-error { color: #c0392b; font-size: .85rem; margin-top: .3rem; }
+    .brief-section textarea { width: 100%; padding: .5rem; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font: inherit; resize: vertical; }
+    .brief-error { color: var(--danger); font-size: .85rem; margin-top: .3rem; }
     .brief-sample { color: var(--muted); font-size: .85rem; margin-top: .3rem; font-style: italic; }
-    .feed { list-style: none; padding: 0; margin: 0; }
-    .feed li { padding: .3rem 0; border-bottom: 1px solid var(--border); font-size: .85rem; color: var(--muted); }
-    .feed li:last-child { border-bottom: none; }
-    @media (max-width: 800px) {
-      .campaign-grid, .personas { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 560px) {
-      main { margin-top: 2rem; }
-      .metrics, .campaign-grid, .personas { grid-template-columns: 1fr; }
-      .persona.jules-alert { transform: none; }
-    }
   </style>
 </head>
 <body>
-  <div class="banner">Simulated campaign — not connected to live ads</div>
-  <main>
-    <div class="eyebrow">Agentic marketing lab</div>
-    <h1>Won'tBuy</h1>
-    <p class="intro">See whether a campaign failed because it reached the wrong people or because the right people rejected its message.</p>
-    <nav class="rounds" aria-label="Campaign rounds">
-      <button type="button" data-round="1">Load round 1</button>
-      <button type="button" data-round="2">Load round 2</button>
-      <button type="button" data-round="3">Load round 3</button>
-      <button type="button" id="export-btn">Export campaign.md</button>
-      <label class="toggle-switch"><input type="checkbox" id="cache-toggle"><span>Use cached rounds</span></label>
-    </nav>
+  <div class="wrap">
+    <header class="banner">
+      <div class="brand">Won'tBuy <span class="lab">· Agentic marketing lab</span></div>
+      <div>
+        <span id="mode-pill" class="mode-pill cached">Checking…</span>
+        <div class="sim-note">Simulated campaign — not connected to live ads</div>
+      </div>
+    </header>
+
+    <div class="actions">
+      <button class="btn primary" data-round="1" id="btn-r1">Run leak check</button>
+      <button class="btn" data-round="2" id="btn-r2">Tighten targeting</button>
+      <button class="btn" data-round="3" id="btn-r3">Fix the copy</button>
+      <button class="btn" id="export-btn">Export campaign.md</button>
+    </div>
+
     <details class="brief-section">
       <summary>Custom brief (experimental)</summary>
       <form id="brief-form">
         <textarea id="brief-input" rows="3" placeholder="Describe your product, target buyer, and price…"></textarea>
-        <button type="submit">Run custom campaign</button>
+        <button type="submit" class="btn">Run custom campaign</button>
       </form>
       <div id="brief-error" class="brief-error"></div>
       <div id="brief-sample" class="brief-sample"></div>
     </details>
-    <section class="dashboard" id="dashboard" aria-live="polite">Loading round one…</section>
-  </main>
+
+    <div class="layout">
+      <section class="card agent-panel">
+        <div class="eyebrow section-title">Agent activity</div>
+        <ul class="feed" id="feed"></ul>
+      </section>
+
+      <section id="dashboard"></section>
+    </div>
+  </div>
+
   <script>
-    const dashboard = document.querySelector('#dashboard');
-    const roundButtons = document.querySelectorAll('[data-round]');
-    let allRoundData = {};
+    const state = { data: null, loading: false };
+    const feedEl = document.getElementById('feed');
+    const dashEl = document.getElementById('dashboard');
+    const modePill = document.getElementById('mode-pill');
+    const buttons = {
+      1: document.getElementById('btn-r1'),
+      2: document.getElementById('btn-r2'),
+      3: document.getElementById('btn-r3'),
+    };
 
-    function label(value) {
-      return value.replaceAll('_', ' ');
+    function setMode(live) {
+      modePill.textContent = live ? 'Live Gemini' : 'Cached';
+      modePill.className = 'mode-pill ' + (live ? 'live' : 'cached');
     }
 
-    function renderTargeting(targeting) {
-      return Object.entries(targeting).flatMap(([group, values]) =>
-        values.map((value) => `<span class="chip">${label(group)}: ${label(value)}</span>`)
-      ).join('');
+    function setLoading(loading) {
+      state.loading = loading;
+      Object.values(buttons).forEach((b) => (b.disabled = loading));
+      document.getElementById('export-btn').disabled = loading;
     }
 
-    function renderPersona(persona) {
-      const isLoudJules = persona.id === 'jules' && persona.reached && persona.would_click;
-      let verdict;
-      if (!persona.reached) {
-        verdict = `<p class="status">${persona.status || 'Not reached this round'}</p>`;
+    function renderPersona(p) {
+      const isLoud = p.is_icp === false && p.reached && p.would_click;
+      let verdict, verdictClass;
+      if (!p.reached) {
+        verdict = 'Not reached this round';
+        verdictClass = 'unreached';
+      } else if (p.would_click) {
+        verdict = 'Would click';
+        verdictClass = 'click';
       } else {
-        verdict = `<p class="verdict ${persona.would_click ? 'click' : ''}">${persona.would_click ? 'Would click' : 'Would not click'}</p>`;
+        verdict = 'Would not click';
+        verdictClass = 'noclick';
       }
-
+      const quote = p.quote ? `<div class="quote">“${p.quote}”</div>` : '';
+      const reason = p.reason ? `<div class="reason">${p.reason}</div>` : '';
       return `
-        <article class="card persona ${isLoudJules ? 'jules-alert' : ''}">
-          <div class="eyebrow">${persona.is_icp ? 'ICP' : 'Not ICP'}</div>
-          <strong>${persona.name}</strong>
-          <span>${label(persona.segment)}</span>
-          ${verdict}
-          ${persona.quote ? `<p class="quote">“${persona.quote}”</p>` : ''}
-          ${persona.reason ? `<p>${persona.reason}</p>` : ''}
+        <article class="persona ${isLoud ? 'loud' : ''}">
+          <div class="name">${p.name}</div>
+          <div class="seg">${p.segment === 'student' ? 'student' : 'ICP · plant manager'}</div>
+          <div class="verdict ${verdictClass}">${verdict}</div>
+          ${quote}
+          ${reason}
         </article>`;
     }
 
-    function purchaseRate(personas) {
-      const reachedIcp = personas.filter((persona) => persona.is_icp && persona.reached);
-      const buyers = reachedIcp.filter((persona) => persona.would_click).length;
-      return `${buyers}/${reachedIcp.length}`;
-    }
+    function render(data) {
+      state.data = data;
+      const c = data.campaign;
+      const round = data.round || 0;
 
-    function purchaseRateValue(personas) {
-      const reachedIcp = personas.filter((persona) => persona.is_icp && persona.reached);
-      const buyers = reachedIcp.filter((persona) => persona.would_click).length;
-      return reachedIcp.length ? (buyers / reachedIcp.length) * 100 : 0;
-    }
+      const chips = Object.entries(c.targeting || {}).map(([group, values]) =>
+        values.map((v) => `<span class="chip">${String(v).replace(/_/g, ' ')}</span>`).join('')
+      ).join('');
 
-    function renderChart() {
-      const rounds = [1, 2, 3].filter((r) => allRoundData[r]);
-      if (rounds.length < 2) return '';
-      return `
+      const bullets = (c.page.bullets && c.page.bullets.length)
+        ? c.page.bullets.map((b) => `<div class="bullet">• ${b}</div>`).join('')
+        : '';
+      const pageBody = (c.page.bullets && c.page.bullets.length) || !c.page.body
+        ? ''
+        : `<p>${c.page.body}</p>`;
+      const proof = c.page.proof ? `<div class="proof">${c.page.proof}</div>` : '';
+      const highlight = c.page.highlight ? `<div class="highlight">${c.page.highlight}</div>` : '';
+      const price = c.page.price ? `<div class="price">${c.page.price}</div>` : '<div class="price">no price</div>';
+
+      const email = c.email ? `
+        <div class="card email-card">
+          <div class="eyebrow">Email follow-up</div>
+          <div class="subj">${c.email.subject}</div>
+          <div class="body">${c.email.body}</div>
+        </div>` : '';
+
+      const personas = (data.personas || []).map(renderPersona).join('');
+
+      dashEl.innerHTML = `
         <section class="card">
-          <div class="eyebrow">Metrics across rounds</div>
-          <div class="chart-bar">
-            ${rounds.map((r) => {
-              const d = allRoundData[r];
-              const acc = d.targeting_accuracy;
-              const pur = purchaseRateValue(d.personas);
-              return `
-              <div class="chart-col">
-                <div class="value">${acc}%</div>
-                <div class="bar-container">
-                  <div class="bar accuracy" style="height:${acc}%"></div>
-                </div>
-                <div class="value">${purchaseRate(d.personas)}</div>
-                <div class="bar-container">
-                  <div class="bar purchase" style="height:${pur}%"></div>
-                </div>
-                <div class="label">R${r}</div>
-              </div>`;
-            }).join('')}
+          <div class="eyebrow">${round === 0 ? 'Custom campaign' : 'Round ' + round} · ${c.company}</div>
+
+          <div class="eyebrow section-title">Paid targeting</div>
+          <div class="chips">${chips}</div>
+
+          <div class="metrics">
+            <div class="metric"><div class="value">${data.targeting_accuracy}%</div><div class="label">Targeting accuracy</div></div>
+            <div class="metric"><div class="value">${data.icp_purchase_rate}</div><div class="label">ICP purchase rate</div></div>
           </div>
-          <p>Bars: targeting accuracy (top) and ICP purchase rate (bottom) per round.</p>
-        </section>`;
-    }
 
-    function renderRound(payload) {
-      const { campaign, personas, targeting_accuracy: accuracy, critic_summary: criticSummary, agent_feed: agentFeed, round } = payload;
-      allRoundData[round] = payload;
-      const price = campaign.page.price
-        ? `<div class="price">${campaign.page.price}</div>`
-        : '<div class="no-price">no price</div>';
+          ${data.critic_summary ? `<div class="eyebrow section-title">Funnel critic</div><p style="margin:0 0 .5rem">${data.critic_summary}</p>` : ''}
 
-      const bullets = campaign.page.bullets
-        ? `<ul class="bullets">${campaign.page.bullets.map((b) => `<li>${b}</li>`).join('')}</ul>`
-        : `<p>${campaign.page.body}</p>`;
+          <div class="eyebrow section-title">Ad</div>
+          <div class="ad-card">
+            <h2>${c.ad.headline}</h2>
+            <p>${c.ad.body}</p>
+            <span class="cta-btn ${c.ad.cta === 'Learn more' ? 'neutral' : ''}">${c.ad.cta}</span>
+          </div>
 
-      const proof = campaign.page.proof
-        ? `<div class="proof">${campaign.page.proof}</div>`
-        : '';
+          <div class="eyebrow section-title" style="margin-top:1rem">Landing page</div>
+          <div class="preview">
+            <h2>${c.page.headline}</h2>
+            ${highlight}
+            ${pageBody}
+            ${bullets}
+            ${proof}
+            ${price}
+            <span class="cta-btn ${c.page.cta === 'Learn more' ? 'neutral' : ''}">${c.page.cta}</span>
+          </div>
 
-      const highlight = campaign.page.highlight
-        ? `<div class="highlight">${campaign.page.highlight}</div>`
-        : '';
-
-      const emailSection = campaign.email
-        ? `<article class="card preview">
-            <div class="preview-copy">
-              <div class="eyebrow">Email follow-up</div>
-              <h3>${campaign.email.subject}</h3>
-              <p>${campaign.email.body.replace(/\n/g, '<br>')}</p>
-            </div>
-          </article>`
-        : '';
-
-      const feedSection = agentFeed
-        ? `<section class="card"><div class="eyebrow section-title">Agent feed</div><ul class="feed">${agentFeed.map((line) => `<li>${line}</li>`).join('')}</ul></section>`
-        : '';
-
-      dashboard.innerHTML = `
-        <section class="card">
-          <div class="eyebrow">${round === 0 ? 'Custom campaign' : `Round ${round}`} · ${campaign.company}</div>
-          <h2 class="section-title">Paid targeting</h2>
-          <div class="chips">${renderTargeting(campaign.targeting)}</div>
+          ${email}
         </section>
-        ${renderChart()}
-        <section class="metrics" aria-label="Campaign metrics">
-          <article class="card metric">
-            <div class="eyebrow">Targeting accuracy</div>
-            <strong>${accuracy}%</strong>
-          </article>
-          <article class="card metric">
-            <div class="eyebrow">ICP purchase rate</div>
-            <strong>${purchaseRate(personas)}</strong>
-          </article>
-        </section>
-        ${criticSummary ? `<section class="card"><div class="eyebrow">Funnel critic</div><p>${criticSummary}</p></section>` : ''}
-        ${feedSection}
-        <section class="campaign-grid">
-          <article class="card preview">
-            <div class="preview-copy">
-              <div class="eyebrow">Ad</div>
-              <h2>${campaign.ad.headline}</h2>
-              <p>${campaign.ad.body}</p>
-            </div>
-            <div><span class="cta">${campaign.ad.cta}</span></div>
-          </article>
-          <article class="card preview">
-            <div class="preview-copy">
-              <div class="eyebrow">Landing page</div>
-              <h2>${campaign.page.headline}</h2>
-              ${highlight}
-              ${bullets}
-              ${proof}
-              ${price}
-            </div>
-            <div><span class="cta">${campaign.page.cta}</span></div>
-          </article>
-          ${emailSection}
-        </section>
+
         <section>
-          <div class="eyebrow section-title">Persona verdicts</div>
-          <div class="personas">${personas.map(renderPersona).join('')}</div>
+          <div class="eyebrow section-title">Audience</div>
+          <div class="personas">${personas}</div>
         </section>`;
     }
 
-    function loadRound(round) {
-      dashboard.textContent = `Loading round ${round}…`;
-      roundButtons.forEach((button) => button.classList.toggle('active', button.dataset.round === String(round)));
-      const useCache = document.querySelector('#cache-toggle').checked ? '?use_cache=1' : '';
-      fetch(`/api/round/${round}${useCache}`)
-        .then((response) => {
-          if (!response.ok) throw new Error('Round could not be loaded.');
-          return response.json();
-        })
-        .then(renderRound)
-        .catch(() => {
-          dashboard.innerHTML = `<p class="error">Round ${round} could not be loaded.</p>`;
-        });
+    function renderFeed(feed) {
+      feedEl.innerHTML = '';
+      feed.forEach((line, i) => {
+        const li = document.createElement('li');
+        li.textContent = line;
+        li.className = line.endsWith(':') ? 'role' : '';
+        feedEl.appendChild(li);
+      });
     }
 
-    roundButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const round = button.dataset.round;
-        window.history.replaceState({}, '', `?round=${round}`);
-        loadRound(round);
-      });
+    async function loadRound(round) {
+      if (state.loading) return;
+      setLoading(true);
+      renderFeed(['Working…']);
+      try {
+        const res = await fetch('/api/round/' + round);
+        const data = await res.json();
+        render(data);
+        renderFeed(data.agent_feed || []);
+      } catch (err) {
+        renderFeed(['Error loading round — check the server.']);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    document.querySelectorAll('[data-round]').forEach((btn) => {
+      btn.addEventListener('click', () => loadRound(btn.dataset.round));
     });
 
-    document.querySelector('#export-btn').addEventListener('click', () => {
+    document.getElementById('export-btn').addEventListener('click', () => {
       window.location.href = '/api/export/campaign.md';
     });
 
-    document.querySelector('#cache-toggle').addEventListener('change', () => {
-      allRoundData = {};
-      const currentRound = new URLSearchParams(window.location.search).get('round') || '1';
-      loadRound(currentRound);
-    });
+    // Load initial status + round 1.
+    async function boot() {
+      try {
+        const res = await fetch('/api/status');
+        const st = await res.json();
+        setMode(st.live);
+      } catch (e) {
+        setMode(false);
+      }
+      loadRound(1);
+    }
 
-    const requestedRound = Number(new URLSearchParams(window.location.search).get('round'));
-    loadRound([1, 2, 3].includes(requestedRound) ? requestedRound : 1);
-
-    // Custom brief form — empty input shows error + sample, never crashes.
-    document.querySelector('#brief-form')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const input = document.querySelector('#brief-input');
-      const errorBox = document.querySelector('#brief-error');
-      const sampleBox = document.querySelector('#brief-sample');
+    // Custom brief.
+    document.getElementById('brief-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const errorBox = document.getElementById('brief-error');
+      const sampleBox = document.getElementById('brief-sample');
       errorBox.textContent = '';
       sampleBox.textContent = '';
-
-      const brief = input.value.trim();
-      if (!brief) {
-        errorBox.textContent = 'Brief cannot be empty. Try the sample below.';
-        sampleBox.textContent = 'Northline: dashboard for plant managers to see machine downtime before the shift. From €199/mo. Proof: 40 plants.';
-        return;
-      }
-      if (brief.length < 10) {
-        errorBox.textContent = 'Brief is too short — add at least a product name and target buyer.';
-        return;
-      }
-
+      const brief = document.getElementById('brief-input').value;
       try {
         const res = await fetch('/api/custom', {
           method: 'POST',
@@ -330,17 +361,19 @@
           body: JSON.stringify({ brief }),
         });
         const data = await res.json();
-        if (!res.ok) {
-          errorBox.textContent = data.detail || 'Server error — try the sample brief.';
-          if (data.sample) sampleBox.textContent = data.sample;
+        if (!res.ok || data.error) {
+          errorBox.textContent = data.error || data.detail || 'Server error — try the sample brief.';
+          if (data.sample) sampleBox.textContent = 'Sample: ' + data.sample;
           return;
         }
-        allRoundData = {};
-        renderRound(data);
+        render(data);
+        renderFeed(data.agent_feed || []);
       } catch (err) {
         errorBox.textContent = 'Request failed — check that the server is running.';
       }
     });
+
+    boot();
   </script>
 </body>
 </html>

@@ -1,9 +1,5 @@
-import json
-import os
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
-
-from app.models import Campaign, Creative, Industry, LandingPage, Region, Role, Targeting
+from app.llm import CacheFallback, chat_json, use_cache_requested
+from app.models import Campaign, Creative, LandingPage, Industry, Region, Role, Targeting
 
 
 FIXED_PRICE = "from €199/mo"
@@ -22,21 +18,23 @@ def tighten_targeting(campaign: Campaign) -> Campaign:
 
 
 def optimize_copy(campaign: Campaign, cached_campaign: Campaign, use_cache: bool = False) -> Campaign:
-    if use_cache or _use_cache() or not os.getenv("LLM_API_KEY"):
+    if use_cache or use_cache_requested():
         return _cached_copy(campaign, cached_campaign)
 
     try:
-        result = _chat_copy(campaign)
+        result = chat_json(
+            "Improve copy only. Return JSON only. Never change targeting or company.",
+            _copy_prompt(campaign),
+            use_cache=use_cache,
+        )
         ad = Creative.model_validate(result["ad"])
         page = LandingPage.model_validate(result["page"])
         _validate_copy(ad, page)
         return campaign.model_copy(update={"ad": ad, "page": page}, deep=True)
-    except (HTTPError, URLError, TimeoutError, KeyError, TypeError, ValueError, json.JSONDecodeError):
+    except CacheFallback:
         return _cached_copy(campaign, cached_campaign)
-
-
-def _use_cache() -> bool:
-    return os.getenv("USE_CACHE", "0").strip().lower() in {"1", "true", "yes", "on"}
+    except (KeyError, TypeError, ValueError):
+        return _cached_copy(campaign, cached_campaign)
 
 
 def _cached_copy(campaign: Campaign, cached_campaign: Campaign) -> Campaign:
@@ -47,56 +45,28 @@ def _cached_copy(campaign: Campaign, cached_campaign: Campaign) -> Campaign:
     )
 
 
-def _chat_copy(campaign: Campaign) -> dict:
-    prompt = {
-        "company": campaign.company,
-        "product": "factory dashboard for plant managers to see machine downtime before the shift",
-        "requirements": {
-            "page_price": FIXED_PRICE,
-            "ad_cta": FIXED_CTA,
-            "page_cta": FIXED_CTA,
-            "forbidden_claims": ["#1", "best in the world"],
-            "proof": FIXED_PROOF,
-        },
-        "schema": {
-            "ad": {"headline": "string", "body": "string", "cta": FIXED_CTA},
-            "page": {
-                "headline": "string",
-                "body": "string",
-                "bullets": ["string", "string", "string"],
-                "proof": FIXED_PROOF,
-                "cta": FIXED_CTA,
-                "price": FIXED_PRICE,
-            },
-        },
-    }
-    request = Request(
-        "https://api.openai.com/v1/chat/completions",
-        data=json.dumps(
-            {
-                "model": os.getenv("LLM_MODEL", "gpt-4o-mini"),
-                "response_format": {"type": "json_object"},
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "Improve copy only. Return JSON only. Never change targeting or company.",
-                    },
-                    {"role": "user", "content": json.dumps(prompt)},
-                ],
-            }
-        ).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {os.environ['LLM_API_KEY']}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
+def _copy_prompt(campaign: Campaign) -> str:
+    return (
+        "{\n"
+        f'  "company": {campaign.company!r},\n'
+        '  "product": "factory dashboard for plant managers to see machine downtime before the shift",\n'
+        "  \"requirements\": {\n"
+        f'    "page_price": {FIXED_PRICE!r},\n'
+        f'    "ad_cta": {FIXED_CTA!r},\n'
+        f'    "page_cta": {FIXED_CTA!r},\n'
+        '    "forbidden_claims": ["#1", "best in the world"],\n'
+        f'    "proof": {FIXED_PROOF!r}\n'
+        "  },\n"
+        "  \"schema\": {\n"
+        '    "ad": {"headline": "string", "body": "string", "cta": "Book a demo"},\n'
+        "    \"page\": {\n"
+        '      "headline": "string", "body": "string",\n'
+        '      "bullets": ["string", "string", "string"],\n'
+        f'      "proof": {FIXED_PROOF!r}, "cta": "Book a demo", "price": {FIXED_PRICE!r}\n'
+        "    }\n"
+        "  }\n"
+        "}"
     )
-    with urlopen(request, timeout=15) as response:
-        payload = json.load(response)
-    result = json.loads(payload["choices"][0]["message"]["content"])
-    if not isinstance(result, dict):
-        raise ValueError("LLM copy response was not an object")
-    return result
 
 
 def _validate_copy(ad: Creative, page: LandingPage) -> None:

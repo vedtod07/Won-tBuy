@@ -11,16 +11,24 @@ All impressions and campaign results are simulated. Won'tBuy is not connected to
 
 ## Run locally
 
-Install the dependencies:
+1. Copy `.env.example` to `.env` and add your Gemini key:
 
-```bash
-python -m pip install -r requirements.txt
-```
+   ```bash
+   GEMINI_API_KEY=your_key_here
+   ```
 
-Start the app:
+2. Install the dependencies:
 
-```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
-```
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
 
-Then open [http://127.0.0.1:8001/](http://127.0.0.1:8001/).
+3. Start the app (port 8000 is a different app):
+
+   ```bash
+   uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+   ```
+
+4. Open [http://127.0.0.1:8001/](http://127.0.0.1:8001/).
+
+Without a `GEMINI_API_KEY` (or with `USE_CACHE=1`), the demo runs on cached fixtures so it still works offline.
