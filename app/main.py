@@ -39,24 +39,47 @@ def load_round(round_number: int, use_cache: bool = False) -> dict:
     impressions = sample_impressions(campaign.targeting)
     accuracy = targeting_accuracy(impressions)
 
+    feed = []
+    feed.append(f"Sampler: generated {len(impressions)} simulated impressions (seed 42)")
+    feed.append(f"Sampler: {accuracy}% targeting accuracy")
+    if round_number == 2:
+        feed.append("Optimizer: tightened targeting — manufacturing, plant_manager + operations_manager, europe")
+    elif round_number == 3:
+        feed.append("Optimizer: fixed copy — price added, #1 removed, CTA changed to Book a demo")
+
     evaluated_personas = []
     for fixture_persona in payload["personas"]:
         try:
             evaluation = evaluate_persona(fixture_persona, campaign_data, round_number)
             evaluated_personas.append({**fixture_persona, **evaluation})
+            if not evaluation.get("reached"):
+                feed.append(f"Persona: {fixture_persona['name']} not reached — skipped")
+            elif evaluation.get("would_click"):
+                feed.append(f"Persona: {fixture_persona['name']} evaluated — Would click")
+            else:
+                feed.append(f"Persona: {fixture_persona['name']} evaluated — Would not click")
         except CacheFallback:
             evaluated_personas.append(fixture_persona)
+            if not fixture_persona.get("reached"):
+                feed.append(f"Persona: {fixture_persona['name']} not reached — skipped (cached)")
+            elif fixture_persona.get("would_click"):
+                feed.append(f"Persona: {fixture_persona['name']} (cached) — Would click")
+            else:
+                feed.append(f"Persona: {fixture_persona['name']} (cached) — Would not click")
 
     try:
         summary = critic_summary(accuracy)
+        feed.append(f"Critic: {summary}")
     except CacheFallback:
         summary = cached_critic_summary(accuracy)
+        feed.append(f"Critic (cached): {summary}")
 
     payload["campaign"] = campaign_data
     payload["personas"] = evaluated_personas
     payload["impressions"] = impressions
     payload["targeting_accuracy"] = accuracy
     payload["critic_summary"] = summary
+    payload["agent_feed"] = feed
     return payload
 
 

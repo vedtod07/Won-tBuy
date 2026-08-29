@@ -66,6 +66,9 @@
     .bullets li { padding-left: 1.2rem; position: relative; color: var(--muted); margin-bottom: .35rem; }
     .bullets li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
     .proof { font-size: .9rem; color: var(--success); font-weight: 700; margin-bottom: 1rem; }
+    .feed { list-style: none; padding: 0; margin: 0; }
+    .feed li { padding: .3rem 0; border-bottom: 1px solid var(--border); font-size: .85rem; color: var(--muted); }
+    .feed li:last-child { border-bottom: none; }
     @media (max-width: 800px) {
       .campaign-grid, .personas { grid-template-columns: 1fr 1fr; }
     }
@@ -167,7 +170,7 @@
     }
 
     function renderRound(payload) {
-      const { campaign, personas, targeting_accuracy: accuracy, critic_summary: criticSummary, round } = payload;
+      const { campaign, personas, targeting_accuracy: accuracy, critic_summary: criticSummary, agent_feed: agentFeed, round } = payload;
       allRoundData[round] = payload;
       const price = campaign.page.price
         ? `<div class="price">${campaign.page.price}</div>`
@@ -222,7 +225,8 @@
         <section>
           <div class="eyebrow section-title">Persona verdicts</div>
           <div class="personas">${personas.map(renderPersona).join('')}</div>
-        </section>`;
+        </section>
+        ${agentFeed ? `<section class="card"><div class="eyebrow section-title">Agent feed</div><ul class="feed">${agentFeed.map((line) => `<li>${line}</li>`).join('')}</ul></section>` : ''}`;
     }
 
     function loadRound(round) {
