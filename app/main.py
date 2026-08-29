@@ -3,6 +3,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, Response
+from pydantic import BaseModel as PydBaseModel
 
 from app.agents.critic import cached_critic_summary, critic_summary
 from app.agents.optimizer import optimize_copy, tighten_targeting
@@ -113,11 +114,19 @@ def build_campaign_markdown() -> str:
         if campaign["page"].get("bullets"):
             for bullet in campaign["page"]["bullets"]:
                 lines.append(f"- {bullet}")
+        if campaign["page"].get("highlight"):
+            lines.append(f"\n> **{campaign['page']['highlight']}**")
         if campaign["page"].get("proof"):
             lines.append(f"\n*{campaign['page']['proof']}*")
         lines.append(f"Price: {campaign['page'].get('price') or 'no price'}")
         lines.append(f"CTA: {campaign['page']['cta']}")
         lines.append("")
+
+        if campaign.get("email"):
+            lines.append("### Email follow-up")
+            lines.append(f"**Subject:** {campaign['email']['subject']}")
+            lines.append(f"\n{campaign['email']['body']}")
+            lines.append("")
 
         lines.append("### Metrics")
         lines.append(f"- Targeting accuracy: {accuracy}%")
@@ -166,9 +175,37 @@ def round_three(use_cache: bool = False) -> dict:
     return load_round(3, use_cache=use_cache)
 
 
+class BriefRequest(PydBaseModel):
+    brief: str = ""
+
+
 @app.get("/api/export/campaign.md")
 def export_campaign() -> Response:
     markdown = build_campaign_markdown()
     return Response(content=markdown, media_type="text/markdown", headers={
         "Content-Disposition": 'attachment; filename="campaign.md"'
     })
+
+
+SAMPLE_BRIEF = (
+    "Northline: dashboard for plant managers to see machine downtime "
+    "before the shift. From €199/mo. Proof: 40 plants."
+)
+
+
+@app.post("/api/custom")
+def custom_campaign(req: BriefRequest, use_cache: bool = False) -> dict:
+    brief = req.brief.strip()
+    if not brief:
+        return {
+            "error": "Brief cannot be empty.",
+            "sample": SAMPLE_BRIEF,
+        }
+    if len(brief) < 10:
+        return {
+            "error": "Brief is too short — add at least a product name and target buyer.",
+            "sample": SAMPLE_BRIEF,
+        }
+    # For now, custom briefs load the Northline demo as a starting point.
+    # A future slice can wire this to the LLM campaign generator.
+    return load_round(1, use_cache=use_cache)

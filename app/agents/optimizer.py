@@ -42,7 +42,7 @@ def _use_cache() -> bool:
 def _cached_copy(campaign: Campaign, cached_campaign: Campaign) -> Campaign:
     _validate_copy(cached_campaign.ad, cached_campaign.page)
     return campaign.model_copy(
-        update={"ad": cached_campaign.ad, "page": cached_campaign.page},
+        update={"ad": cached_campaign.ad, "page": cached_campaign.page, "email": cached_campaign.email},
         deep=True,
     )
 

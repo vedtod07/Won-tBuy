@@ -41,11 +41,17 @@ class Creative(BaseModel):
     cta: str
 
 
+class Email(BaseModel):
+    subject: str
+    body: str
+
+
 class LandingPage(BaseModel):
     headline: str
     body: str = ""
     bullets: list[str] = []
     proof: str | None = None
+    highlight: str | None = None
     cta: str
     price: str | None
 
@@ -55,3 +61,4 @@ class Campaign(BaseModel):
     targeting: Targeting
     ad: Creative
     page: LandingPage
+    email: Email | None = None

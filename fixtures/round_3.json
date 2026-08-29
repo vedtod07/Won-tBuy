@@ -23,8 +23,13 @@
         "Exportable reports for operations reviews"
       ],
       "proof": "Trusted by 40 plants across Europe",
+      "highlight": "See machine downtime before the shift — not after it costs you.",
       "cta": "Book a demo",
       "price": "from €199/mo"
+    },
+    "email": {
+      "subject": "Following up on Northline — 2 min demo?",
+      "body": "Hi,\n\nI noticed you checked out Northline. Would a 2-minute demo help? We show plant managers machine downtime before the shift starts — 40 plants already use it.\n\nBest,\nThe Northline Team"
     }
   },
   "personas": [

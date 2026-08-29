@@ -66,6 +66,13 @@
     .bullets li { padding-left: 1.2rem; position: relative; color: var(--muted); margin-bottom: .35rem; }
     .bullets li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
     .proof { font-size: .9rem; color: var(--success); font-weight: 700; margin-bottom: 1rem; }
+    .highlight { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin: .5rem 0; padding-left: .8rem; border-left: 3px solid var(--accent); }
+    .brief-section { margin: 1rem 0; }
+    .brief-section summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
+    .brief-section form { display: flex; flex-direction: column; gap: .5rem; margin-top: .5rem; }
+    .brief-section textarea { width: 100%; padding: .5rem; border: 1px solid var(--border); border-radius: 6px; font: inherit; resize: vertical; }
+    .brief-error { color: #c0392b; font-size: .85rem; margin-top: .3rem; }
+    .brief-sample { color: var(--muted); font-size: .85rem; margin-top: .3rem; font-style: italic; }
     .feed { list-style: none; padding: 0; margin: 0; }
     .feed li { padding: .3rem 0; border-bottom: 1px solid var(--border); font-size: .85rem; color: var(--muted); }
     .feed li:last-child { border-bottom: none; }
@@ -92,6 +99,15 @@
       <button type="button" id="export-btn">Export campaign.md</button>
       <label class="toggle-switch"><input type="checkbox" id="cache-toggle"><span>Use cached rounds</span></label>
     </nav>
+    <details class="brief-section">
+      <summary>Custom brief (experimental)</summary>
+      <form id="brief-form">
+        <textarea id="brief-input" rows="3" placeholder="Describe your product, target buyer, and price…"></textarea>
+        <button type="submit">Run custom campaign</button>
+      </form>
+      <div id="brief-error" class="brief-error"></div>
+      <div id="brief-sample" class="brief-sample"></div>
+    </details>
     <section class="dashboard" id="dashboard" aria-live="polite">Loading round one…</section>
   </main>
   <script>
@@ -184,6 +200,20 @@
         ? `<div class="proof">${campaign.page.proof}</div>`
         : '';
 
+      const highlight = campaign.page.highlight
+        ? `<div class="highlight">${campaign.page.highlight}</div>`
+        : '';
+
+      const emailSection = campaign.email
+        ? `<article class="card preview">
+            <div class="preview-copy">
+              <div class="eyebrow">Email follow-up</div>
+              <h3>${campaign.email.subject}</h3>
+              <p>${campaign.email.body.replace(/\n/g, '<br>')}</p>
+            </div>
+          </article>`
+        : '';
+
       dashboard.innerHTML = `
         <section class="card">
           <div class="eyebrow">Round ${round} · ${campaign.company}</div>
@@ -215,12 +245,14 @@
             <div class="preview-copy">
               <div class="eyebrow">Landing page</div>
               <h2>${campaign.page.headline}</h2>
+              ${highlight}
               ${bullets}
               ${proof}
               ${price}
             </div>
             <div><span class="cta">${campaign.page.cta}</span></div>
           </article>
+          ${emailSection}
         </section>
         <section>
           <div class="eyebrow section-title">Persona verdicts</div>
@@ -264,6 +296,46 @@
 
     const requestedRound = Number(new URLSearchParams(window.location.search).get('round'));
     loadRound([1, 2, 3].includes(requestedRound) ? requestedRound : 1);
+
+    // Custom brief form — empty input shows error + sample, never crashes.
+    document.querySelector('#brief-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.querySelector('#brief-input');
+      const errorBox = document.querySelector('#brief-error');
+      const sampleBox = document.querySelector('#brief-sample');
+      errorBox.textContent = '';
+      sampleBox.textContent = '';
+
+      const brief = input.value.trim();
+      if (!brief) {
+        errorBox.textContent = 'Brief cannot be empty. Try the sample below.';
+        sampleBox.textContent = 'Northline: dashboard for plant managers to see machine downtime before the shift. From €199/mo. Proof: 40 plants.';
+        return;
+      }
+      if (brief.length < 10) {
+        errorBox.textContent = 'Brief is too short — add at least a product name and target buyer.';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/custom', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brief }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errorBox.textContent = data.detail || 'Server error — try the sample brief.';
+          if (data.sample) sampleBox.textContent = data.sample;
+          return;
+        }
+        allRoundData = {};
+        state.data = data;
+        render(data);
+      } catch (err) {
+        errorBox.textContent = 'Request failed — check that the server is running.';
+      }
+    });
   </script>
 </body>
 </html>
