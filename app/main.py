@@ -45,3 +45,8 @@ def round_one() -> dict:
 @app.get("/api/round/2")
 def round_two() -> dict:
     return load_round(2)
+
+
+@app.get("/api/round/3")
+def round_three() -> dict:
+    return load_round(3)

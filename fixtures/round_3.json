@@ -1,0 +1,58 @@
+{
+  "round": 3,
+  "mode": "simulated",
+  "campaign": {
+    "company": "Northline",
+    "targeting": {
+      "industries": ["manufacturing"],
+      "roles": ["plant_manager", "operations_manager"],
+      "company_sizes": ["1-49", "50-249", "250+"],
+      "regions": ["europe"]
+    },
+    "ad": {
+      "headline": "See machine downtime before the shift",
+      "body": "Northline gives plant managers a clear view of downtime, trusted by 40 plants.",
+      "cta": "Book a demo"
+    },
+    "page": {
+      "headline": "See downtime before it costs another shift",
+      "body": "Northline helps plant managers spot machine downtime early and keep production moving across 40 plants.",
+      "cta": "Book a demo",
+      "price": "from €199/mo"
+    }
+  },
+  "personas": [
+    {
+      "id": "klaus",
+      "name": "Klaus",
+      "segment": "plant_manager",
+      "is_icp": true,
+      "reached": true,
+      "would_click": true
+    },
+    {
+      "id": "anika",
+      "name": "Anika",
+      "segment": "plant_manager",
+      "is_icp": true,
+      "reached": true,
+      "would_click": true
+    },
+    {
+      "id": "mateo",
+      "name": "Mateo",
+      "segment": "plant_manager",
+      "is_icp": true,
+      "reached": true,
+      "would_click": true
+    },
+    {
+      "id": "jules",
+      "name": "Jules",
+      "segment": "student",
+      "is_icp": false,
+      "reached": false,
+      "status": "Not reached this round"
+    }
+  ]
+}

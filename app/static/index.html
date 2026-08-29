@@ -71,6 +71,7 @@
     <nav class="rounds" aria-label="Campaign rounds">
       <button type="button" data-round="1">Load round 1</button>
       <button type="button" data-round="2">Load round 2</button>
+      <button type="button" data-round="3">Load round 3</button>
     </nav>
     <section class="dashboard" id="dashboard" aria-live="polite">Loading round one…</section>
   </main>
@@ -181,8 +182,8 @@
       });
     });
 
-    const requestedRound = new URLSearchParams(window.location.search).get('round');
-    loadRound(requestedRound === '2' ? 2 : 1);
+    const requestedRound = Number(new URLSearchParams(window.location.search).get('round'));
+    loadRound([1, 2, 3].includes(requestedRound) ? requestedRound : 1);
   </script>
 </body>
 </html>
