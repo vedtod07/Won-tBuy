@@ -4,7 +4,10 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
+from app.agents.critic import cached_critic_summary, critic_summary
+from app.agents.personas import evaluate_persona
 from app.impressions import sample_impressions, targeting_accuracy
+from app.llm import CacheFallback
 from app.models import Campaign
 
 
@@ -20,10 +23,28 @@ def load_round(round_number: int) -> dict:
         payload = json.load(fixture)
 
     campaign = Campaign.model_validate(payload["campaign"])
+    campaign_data = campaign.model_dump(mode="json")
     impressions = sample_impressions(campaign.targeting)
-    payload["campaign"] = campaign.model_dump(mode="json")
+    accuracy = targeting_accuracy(impressions)
+
+    evaluated_personas = []
+    for fixture_persona in payload["personas"]:
+        try:
+            evaluation = evaluate_persona(fixture_persona, campaign_data, round_number)
+            evaluated_personas.append({**fixture_persona, **evaluation})
+        except CacheFallback:
+            evaluated_personas.append(fixture_persona)
+
+    try:
+        summary = critic_summary(accuracy)
+    except CacheFallback:
+        summary = cached_critic_summary(accuracy)
+
+    payload["campaign"] = campaign_data
+    payload["personas"] = evaluated_personas
     payload["impressions"] = impressions
-    payload["targeting_accuracy"] = targeting_accuracy(impressions)
+    payload["targeting_accuracy"] = accuracy
+    payload["critic_summary"] = summary
     return payload
 
 

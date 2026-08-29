@@ -104,6 +104,7 @@
           <strong>${persona.name}</strong>
           <span>${label(persona.segment)}</span>
           ${verdict}
+          ${persona.reason ? `<p>${persona.reason}</p>` : ''}
         </article>`;
     }
 
@@ -114,7 +115,7 @@
     }
 
     function renderRound(payload) {
-      const { campaign, personas, targeting_accuracy: accuracy, round } = payload;
+      const { campaign, personas, targeting_accuracy: accuracy, critic_summary: criticSummary, round } = payload;
       const price = campaign.page.price
         ? `<div class="price">${campaign.page.price}</div>`
         : '<div class="no-price">no price</div>';
@@ -135,6 +136,7 @@
             <strong>${purchaseRate(personas)}</strong>
           </article>
         </section>
+        ${criticSummary ? `<section class="card"><div class="eyebrow">Funnel critic</div><p>${criticSummary}</p></section>` : ''}
         <section class="campaign-grid">
           <article class="card preview">
             <div class="preview-copy">
