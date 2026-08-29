@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
+from app.impressions import sample_impressions, targeting_accuracy
 from app.models import Campaign
 
 
@@ -17,7 +18,12 @@ app = FastAPI(title="Won'tBuy", version="0.1.0")
 def load_round_one() -> dict:
     with (FIXTURES_DIR / "round_1.json").open(encoding="utf-8") as fixture:
         payload = json.load(fixture)
-    payload["campaign"] = Campaign.model_validate(payload["campaign"]).model_dump(mode="json")
+
+    campaign = Campaign.model_validate(payload["campaign"])
+    impressions = sample_impressions(campaign.targeting)
+    payload["campaign"] = campaign.model_dump(mode="json")
+    payload["impressions"] = impressions
+    payload["targeting_accuracy"] = targeting_accuracy(impressions)
     return payload
 
 
