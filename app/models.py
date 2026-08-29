@@ -43,7 +43,9 @@ class Creative(BaseModel):
 
 class LandingPage(BaseModel):
     headline: str
-    body: str
+    body: str = ""
+    bullets: list[str] = []
+    proof: str | None = None
     cta: str
     price: str | None
 

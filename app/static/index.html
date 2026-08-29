@@ -28,7 +28,7 @@
     h2, h3 { margin-top: 0; }
     p { color: var(--muted); line-height: 1.6; }
     .intro { max-width: 62ch; font-size: 1.15rem; }
-    .rounds { display: flex; flex-wrap: wrap; gap: .75rem; margin: 2rem 0; }
+    .rounds { display: flex; flex-wrap: wrap; gap: .75rem; margin: 2rem 0; align-items: center; }
     button, .cta { border: 0; border-radius: .65rem; padding: .8rem 1rem; background: var(--accent); color: white; font-weight: 800; cursor: pointer; }
     button:hover, button.active { background: #91a0fa; }
     .dashboard { display: grid; gap: 1rem; }
@@ -52,6 +52,20 @@
     .persona.jules-alert::before { content: "TARGETING LEAK"; position: absolute; top: -.75rem; right: .8rem; padding: .3rem .55rem; border-radius: .35rem; background: var(--warning); color: #211b00; font-size: .7rem; font-weight: 900; letter-spacing: .08em; }
     .status { color: var(--warning); font-weight: 800; }
     .error { color: var(--danger); }
+    .chart-bar { display: flex; align-items: flex-end; gap: .5rem; height: 200px; padding-top: 1rem; }
+    .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+    .chart-col .bar-container { width: 100%; display: flex; align-items: flex-end; justify-content: center; height: 140px; }
+    .chart-col .bar { width: 60%; border-radius: .4rem .4rem 0 0; transition: height .3s; }
+    .chart-col .bar.accuracy { background: var(--accent); }
+    .chart-col .bar.purchase { background: var(--success); }
+    .chart-col .label { font-size: .8rem; color: var(--muted); }
+    .chart-col .value { font-size: .75rem; font-weight: 700; color: var(--text); }
+    .toggle-switch { display: flex; align-items: center; gap: .5rem; margin-left: auto; font-size: .85rem; color: var(--muted); }
+    .toggle-switch input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
+    .bullets { list-style: none; padding: 0; margin: .5rem 0 1rem; }
+    .bullets li { padding-left: 1.2rem; position: relative; color: var(--muted); margin-bottom: .35rem; }
+    .bullets li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
+    .proof { font-size: .9rem; color: var(--success); font-weight: 700; margin-bottom: 1rem; }
     @media (max-width: 800px) {
       .campaign-grid, .personas { grid-template-columns: 1fr 1fr; }
     }
@@ -72,12 +86,15 @@
       <button type="button" data-round="1">Load round 1</button>
       <button type="button" data-round="2">Load round 2</button>
       <button type="button" data-round="3">Load round 3</button>
+      <button type="button" id="export-btn">Export campaign.md</button>
+      <label class="toggle-switch"><input type="checkbox" id="cache-toggle"><span>Use cached rounds</span></label>
     </nav>
     <section class="dashboard" id="dashboard" aria-live="polite">Loading round one…</section>
   </main>
   <script>
     const dashboard = document.querySelector('#dashboard');
     const roundButtons = document.querySelectorAll('[data-round]');
+    let allRoundData = {};
 
     function label(value) {
       return value.replaceAll('_', ' ');
@@ -114,11 +131,55 @@
       return `${buyers}/${reachedIcp.length}`;
     }
 
+    function purchaseRateValue(personas) {
+      const reachedIcp = personas.filter((persona) => persona.is_icp && persona.reached);
+      const buyers = reachedIcp.filter((persona) => persona.would_click).length;
+      return reachedIcp.length ? (buyers / reachedIcp.length) * 100 : 0;
+    }
+
+    function renderChart() {
+      const rounds = [1, 2, 3].filter((r) => allRoundData[r]);
+      if (rounds.length < 2) return '';
+      return `
+        <section class="card">
+          <div class="eyebrow">Metrics across rounds</div>
+          <div class="chart-bar">
+            ${rounds.map((r) => {
+              const d = allRoundData[r];
+              const acc = d.targeting_accuracy;
+              const pur = purchaseRateValue(d.personas);
+              return `
+              <div class="chart-col">
+                <div class="value">${acc}%</div>
+                <div class="bar-container">
+                  <div class="bar accuracy" style="height:${acc}%"></div>
+                </div>
+                <div class="value">${purchaseRate(d.personas)}</div>
+                <div class="bar-container">
+                  <div class="bar purchase" style="height:${pur}%"></div>
+                </div>
+                <div class="label">R${r}</div>
+              </div>`;
+            }).join('')}
+          </div>
+          <p>Bars: targeting accuracy (top) and ICP purchase rate (bottom) per round.</p>
+        </section>`;
+    }
+
     function renderRound(payload) {
       const { campaign, personas, targeting_accuracy: accuracy, critic_summary: criticSummary, round } = payload;
+      allRoundData[round] = payload;
       const price = campaign.page.price
         ? `<div class="price">${campaign.page.price}</div>`
         : '<div class="no-price">no price</div>';
+
+      const bullets = campaign.page.bullets
+        ? `<ul class="bullets">${campaign.page.bullets.map((b) => `<li>${b}</li>`).join('')}</ul>`
+        : `<p>${campaign.page.body}</p>`;
+
+      const proof = campaign.page.proof
+        ? `<div class="proof">${campaign.page.proof}</div>`
+        : '';
 
       dashboard.innerHTML = `
         <section class="card">
@@ -126,6 +187,7 @@
           <h2 class="section-title">Paid targeting</h2>
           <div class="chips">${renderTargeting(campaign.targeting)}</div>
         </section>
+        ${renderChart()}
         <section class="metrics" aria-label="Campaign metrics">
           <article class="card metric">
             <div class="eyebrow">Targeting accuracy</div>
@@ -150,7 +212,8 @@
             <div class="preview-copy">
               <div class="eyebrow">Landing page</div>
               <h2>${campaign.page.headline}</h2>
-              <p>${campaign.page.body}</p>
+              ${bullets}
+              ${proof}
               ${price}
             </div>
             <div><span class="cta">${campaign.page.cta}</span></div>
@@ -165,7 +228,8 @@
     function loadRound(round) {
       dashboard.textContent = `Loading round ${round}…`;
       roundButtons.forEach((button) => button.classList.toggle('active', button.dataset.round === String(round)));
-      fetch(`/api/round/${round}`)
+      const useCache = document.querySelector('#cache-toggle').checked ? '?use_cache=1' : '';
+      fetch(`/api/round/${round}${useCache}`)
         .then((response) => {
           if (!response.ok) throw new Error('Round could not be loaded.');
           return response.json();
@@ -182,6 +246,16 @@
         window.history.replaceState({}, '', `?round=${round}`);
         loadRound(round);
       });
+    });
+
+    document.querySelector('#export-btn').addEventListener('click', () => {
+      window.location.href = '/api/export/campaign.md';
+    });
+
+    document.querySelector('#cache-toggle').addEventListener('change', () => {
+      allRoundData = {};
+      const currentRound = new URLSearchParams(window.location.search).get('round') || '1';
+      loadRound(currentRound);
     });
 
     const requestedRound = Number(new URLSearchParams(window.location.search).get('round'));

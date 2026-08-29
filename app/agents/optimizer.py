@@ -8,6 +8,7 @@ from app.models import Campaign, Creative, Industry, LandingPage, Region, Role, 
 
 FIXED_PRICE = "from €199/mo"
 FIXED_CTA = "Book a demo"
+FIXED_PROOF = "Trusted by 40 plants across Europe"
 
 
 def tighten_targeting(campaign: Campaign) -> Campaign:
@@ -55,13 +56,15 @@ def _chat_copy(campaign: Campaign) -> dict:
             "ad_cta": FIXED_CTA,
             "page_cta": FIXED_CTA,
             "forbidden_claims": ["#1", "best in the world"],
-            "proof": "trusted by 40 plants",
+            "proof": FIXED_PROOF,
         },
         "schema": {
             "ad": {"headline": "string", "body": "string", "cta": FIXED_CTA},
             "page": {
                 "headline": "string",
                 "body": "string",
+                "bullets": ["string", "string", "string"],
+                "proof": FIXED_PROOF,
                 "cta": FIXED_CTA,
                 "price": FIXED_PRICE,
             },
@@ -97,7 +100,10 @@ def _chat_copy(campaign: Campaign) -> dict:
 
 
 def _validate_copy(ad: Creative, page: LandingPage) -> None:
-    copy = " ".join((ad.headline, ad.body, page.headline, page.body)).lower()
+    copy = " ".join(
+        (ad.headline, ad.body, page.headline, page.body)
+        + tuple(page.bullets)
+    ).lower()
     if "#1" in copy or "best in the world" in copy:
         raise ValueError("Copy contains an unsourced ranking claim")
     if page.price != FIXED_PRICE:

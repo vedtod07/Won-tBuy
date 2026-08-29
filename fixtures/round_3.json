@@ -16,7 +16,13 @@
     },
     "page": {
       "headline": "See downtime before it costs another shift",
-      "body": "Northline helps plant managers spot machine downtime early and keep production moving across 40 plants.",
+      "body": "Northline helps plant managers spot machine downtime early and keep production moving.",
+      "bullets": [
+        "Real-time machine status for every line on the floor",
+        "Shift-over-shift downtime trends with automated alerts",
+        "Exportable reports for operations reviews"
+      ],
+      "proof": "Trusted by 40 plants across Europe",
       "cta": "Book a demo",
       "price": "from €199/mo"
     }
