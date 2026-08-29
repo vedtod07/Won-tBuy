@@ -5,17 +5,61 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Won'tBuy</title>
   <style>
-    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
-    body { margin: 0; background: #0b1020; color: #f4f7ff; }
-    .banner { padding: .7rem 1rem; background: #f6c945; color: #211b00; text-align: center; font-weight: 700; }
-    main { width: min(900px, calc(100% - 2rem)); margin: 4rem auto; }
-    .eyebrow { color: #8da2fb; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-    h1 { margin: .5rem 0; font-size: clamp(2.5rem, 8vw, 5rem); }
-    p { color: #b9c2da; font-size: 1.2rem; max-width: 62ch; }
-    .rounds { display: flex; gap: .75rem; margin-top: 2rem; }
-    .card { margin-top: 1rem; padding: 1.5rem; border: 1px solid #29324d; border-radius: 1rem; background: #121a2e; }
-    button { border: 0; border-radius: .6rem; padding: .8rem 1rem; background: #7186f4; color: white; font-weight: 700; cursor: pointer; }
-    button:hover { background: #8799f7; }
+    :root {
+      color-scheme: dark;
+      font-family: Inter, system-ui, sans-serif;
+      --bg: #0b1020;
+      --surface: #121a2e;
+      --surface-raised: #18233d;
+      --border: #29324d;
+      --text: #f4f7ff;
+      --muted: #aeb9d3;
+      --accent: #7186f4;
+      --warning: #f6c945;
+      --success: #58d6a9;
+      --danger: #ff6f7d;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    .banner { padding: .7rem 1rem; background: var(--warning); color: #211b00; text-align: center; font-weight: 800; }
+    main { width: min(1120px, calc(100% - 2rem)); margin: 3rem auto 5rem; }
+    .eyebrow { color: #9aabff; font-size: .78rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: .45rem 0; font-size: clamp(2.8rem, 7vw, 5.3rem); line-height: .95; }
+    h2, h3 { margin-top: 0; }
+    p { color: var(--muted); line-height: 1.6; }
+    .intro { max-width: 62ch; font-size: 1.15rem; }
+    .rounds { display: flex; flex-wrap: wrap; gap: .75rem; margin: 2rem 0; }
+    button, .cta { border: 0; border-radius: .65rem; padding: .8rem 1rem; background: var(--accent); color: white; font-weight: 800; cursor: pointer; }
+    button:hover, button.active { background: #91a0fa; }
+    .dashboard { display: grid; gap: 1rem; }
+    .card { padding: 1.4rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--surface); }
+    .section-title { margin-bottom: .9rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .chip { padding: .45rem .7rem; border: 1px solid #405078; border-radius: 999px; background: #1b2744; color: #dce3ff; font-size: .85rem; }
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .metric strong { display: block; margin-top: .35rem; font-size: clamp(2rem, 5vw, 3.4rem); }
+    .campaign-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .preview { min-height: 270px; display: flex; flex-direction: column; justify-content: space-between; }
+    .preview-copy p { margin-bottom: 1.5rem; }
+    .price { color: var(--success); font-size: 1.1rem; font-weight: 800; }
+    .no-price { color: var(--danger); font-weight: 800; }
+    .personas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+    .persona { position: relative; min-height: 190px; }
+    .persona strong { display: block; margin-bottom: .35rem; font-size: 1.25rem; }
+    .persona .verdict { margin-top: 1rem; font-weight: 800; color: var(--danger); }
+    .persona .click { color: var(--success); }
+    .persona.jules-alert { border: 2px solid var(--warning); background: linear-gradient(135deg, #3c3217, #211d2b); box-shadow: 0 0 0 4px rgb(246 201 69 / 12%); transform: translateY(-4px); }
+    .persona.jules-alert::before { content: "TARGETING LEAK"; position: absolute; top: -.75rem; right: .8rem; padding: .3rem .55rem; border-radius: .35rem; background: var(--warning); color: #211b00; font-size: .7rem; font-weight: 900; letter-spacing: .08em; }
+    .status { color: var(--warning); font-weight: 800; }
+    .error { color: var(--danger); }
+    @media (max-width: 800px) {
+      .campaign-grid, .personas { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      main { margin-top: 2rem; }
+      .metrics, .campaign-grid, .personas { grid-template-columns: 1fr; }
+      .persona.jules-alert { transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -23,41 +67,122 @@
   <main>
     <div class="eyebrow">Agentic marketing lab</div>
     <h1>Won'tBuy</h1>
-    <p>Diagnose whether a campaign is reaching the wrong people or saying the wrong thing.</p>
+    <p class="intro">See whether a campaign failed because it reached the wrong people or because the right people rejected its message.</p>
     <nav class="rounds" aria-label="Campaign rounds">
       <button type="button" data-round="1">Load round 1</button>
       <button type="button" data-round="2">Load round 2</button>
     </nav>
-    <section class="card" id="campaign" aria-live="polite">Loading round one…</section>
+    <section class="dashboard" id="dashboard" aria-live="polite">Loading round one…</section>
   </main>
   <script>
-    const campaignPanel = document.querySelector('#campaign');
+    const dashboard = document.querySelector('#dashboard');
+    const roundButtons = document.querySelectorAll('[data-round]');
+
+    function label(value) {
+      return value.replaceAll('_', ' ');
+    }
+
+    function renderTargeting(targeting) {
+      return Object.entries(targeting).flatMap(([group, values]) =>
+        values.map((value) => `<span class="chip">${label(group)}: ${label(value)}</span>`)
+      ).join('');
+    }
+
+    function renderPersona(persona) {
+      const isLoudJules = persona.id === 'jules' && persona.reached && persona.would_click;
+      let verdict;
+      if (!persona.reached) {
+        verdict = `<p class="status">${persona.status || 'Not reached this round'}</p>`;
+      } else {
+        verdict = `<p class="verdict ${persona.would_click ? 'click' : ''}">${persona.would_click ? 'Would click' : 'Would not click'}</p>`;
+      }
+
+      return `
+        <article class="card persona ${isLoudJules ? 'jules-alert' : ''}">
+          <div class="eyebrow">${persona.is_icp ? 'ICP' : 'Not ICP'}</div>
+          <strong>${persona.name}</strong>
+          <span>${label(persona.segment)}</span>
+          ${verdict}
+        </article>`;
+    }
+
+    function purchaseRate(personas) {
+      const reachedIcp = personas.filter((persona) => persona.is_icp && persona.reached);
+      const buyers = reachedIcp.filter((persona) => persona.would_click).length;
+      return `${buyers}/${reachedIcp.length}`;
+    }
+
+    function renderRound(payload) {
+      const { campaign, personas, targeting_accuracy: accuracy, round } = payload;
+      const price = campaign.page.price
+        ? `<div class="price">${campaign.page.price}</div>`
+        : '<div class="no-price">no price</div>';
+
+      dashboard.innerHTML = `
+        <section class="card">
+          <div class="eyebrow">Round ${round} · ${campaign.company}</div>
+          <h2 class="section-title">Paid targeting</h2>
+          <div class="chips">${renderTargeting(campaign.targeting)}</div>
+        </section>
+        <section class="metrics" aria-label="Campaign metrics">
+          <article class="card metric">
+            <div class="eyebrow">Targeting accuracy</div>
+            <strong>${accuracy}%</strong>
+          </article>
+          <article class="card metric">
+            <div class="eyebrow">ICP purchase rate</div>
+            <strong>${purchaseRate(personas)}</strong>
+          </article>
+        </section>
+        <section class="campaign-grid">
+          <article class="card preview">
+            <div class="preview-copy">
+              <div class="eyebrow">Ad</div>
+              <h2>${campaign.ad.headline}</h2>
+              <p>${campaign.ad.body}</p>
+            </div>
+            <div><span class="cta">${campaign.ad.cta}</span></div>
+          </article>
+          <article class="card preview">
+            <div class="preview-copy">
+              <div class="eyebrow">Landing page</div>
+              <h2>${campaign.page.headline}</h2>
+              <p>${campaign.page.body}</p>
+              ${price}
+            </div>
+            <div><span class="cta">${campaign.page.cta}</span></div>
+          </article>
+        </section>
+        <section>
+          <div class="eyebrow section-title">Persona verdicts</div>
+          <div class="personas">${personas.map(renderPersona).join('')}</div>
+        </section>`;
+    }
 
     function loadRound(round) {
-      campaignPanel.textContent = `Loading round ${round}…`;
+      dashboard.textContent = `Loading round ${round}…`;
+      roundButtons.forEach((button) => button.classList.toggle('active', button.dataset.round === String(round)));
       fetch(`/api/round/${round}`)
         .then((response) => {
           if (!response.ok) throw new Error('Round could not be loaded.');
           return response.json();
         })
-        .then(({ campaign, targeting_accuracy: accuracy }) => {
-          campaignPanel.innerHTML = `
-            <div class="eyebrow">Round ${round} · ${campaign.company}</div>
-            <h2>${campaign.ad.headline}</h2>
-            <p>${campaign.ad.body}</p>
-            <p>Targeting accuracy: ${accuracy}%</p>
-            <button type="button">${campaign.ad.cta}</button>`;
-        })
+        .then(renderRound)
         .catch(() => {
-          campaignPanel.textContent = `Round ${round} could not be loaded.`;
+          dashboard.innerHTML = `<p class="error">Round ${round} could not be loaded.</p>`;
         });
     }
 
-    document.querySelectorAll('[data-round]').forEach((button) => {
-      button.addEventListener('click', () => loadRound(button.dataset.round));
+    roundButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const round = button.dataset.round;
+        window.history.replaceState({}, '', `?round=${round}`);
+        loadRound(round);
+      });
     });
 
-    loadRound(1);
+    const requestedRound = new URLSearchParams(window.location.search).get('round');
+    loadRound(requestedRound === '2' ? 2 : 1);
   </script>
 </body>
 </html>
