@@ -395,3 +395,35 @@ def test_clayfolk_round_three_uses_shop_now():
     proof = (round_three["campaign"]["page"].get("proof") or "").lower()
     assert "plants across europe" not in proof
     assert "Shop now" in round_three["chapter"]["people_sub"]
+
+
+def test_audience_builder_keeps_named_buyers_and_leak():
+    from app.agents.brief import briefing_from_audience
+
+    briefing = briefing_from_audience(
+        company="Clayfolk",
+        product="handmade mugs",
+        price="18 pounds each",
+        audience="home cooks",
+        leak="teen gift browsers",
+        buyers=[
+            {"name": "Marta", "title": "Home cook · wants a price"},
+            {"name": "Kenji", "title": "Home cook · hates slogans"},
+            {"name": "Elena", "title": "Home cook · rejects ranking"},
+        ],
+        leak_person={"name": "Tess", "title": "Teen browsing gifts"},
+    )
+    assert briefing["interpreted_by"] == "audience_builder"
+    assert briefing["company"] == "Clayfolk"
+    assert briefing["price"] == "from £18"
+    names = {row["name"]: row for row in briefing["personas"]}
+    assert names["Marta"]["is_icp"] is True
+    assert names["Tess"]["is_icp"] is False
+    assert "teen" in names["Tess"]["title"].lower()
+    activate_custom_lab(briefing)
+    round_one = load_round(1)
+    lab_names = {row["name"] for row in round_one["personas"]}
+    assert {"Marta", "Kenji", "Elena", "Tess"} <= lab_names
+    leak = next(row for row in round_one["personas"] if row.get("is_icp") is False)
+    assert leak["name"] == "Tess"
+    assert leak["reached"] is True

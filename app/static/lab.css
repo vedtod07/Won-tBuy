@@ -391,6 +391,41 @@ header {
   background: var(--bg);
 }
 
+.csv-preview {
+  margin: 0.35rem 0 0.15rem;
+  padding: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 0.72rem;
+  color: var(--muted);
+  overflow: auto;
+  max-height: 14rem;
+}
+.csv-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.35rem;
+}
+.csv-preview th, .csv-preview td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.22rem 0.3rem;
+  text-align: left;
+  white-space: nowrap;
+}
+.csv-preview .ok { color: var(--success); }
+.csv-preview .bad { color: var(--danger); }
+.csv-preview .map { color: var(--accent); font-family: "IBM Plex Mono", ui-monospace, monospace; }
+.csv-preview .reasoning { color: var(--text); margin: 0.35rem 0; }
+.csv-preview .meta { color: var(--muted); font-size: 0.68rem; }
+
+.audience-people {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+.audience-form input.brief-textarea { min-height: 0; }
+
 .hint-line {
   font-size: 0.86rem;
   color: var(--muted);

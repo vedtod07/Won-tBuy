@@ -77,22 +77,30 @@
         <button type="button" id="play-all-btn" class="export-btn">Play all three steps</button>
         <button type="button" id="export-btn" class="export-btn">Export campaign.md</button>
         <button type="button" id="open-brief-btn" class="export-btn">Custom brief</button>
+        <button type="button" id="open-audience-btn" class="export-btn">Audience builder</button>
       </div>
 
     <details id="details-numbers">
       <summary>
         <span>Paste last campaign numbers</span>
-        <span style="font-size: 0.8rem; color: var(--muted);">Simulator stays; waste uses your spend</span>
+        <span style="font-size: 0.8rem; color: var(--muted);">A live key reads the export — totals stay summed in code</span>
       </summary>
       <div class="details-content">
         <form id="numbers-form" class="brief-form">
+          <label for="num-csv-file">Upload campaign CSV</label>
+          <input id="num-csv-file" type="file" accept=".csv,text/csv">
+          <div class="brief-actions" style="display:flex;gap:.4rem;flex-wrap:wrap;">
+            <button type="button" id="csv-demo-btn" class="export-btn" style="width:auto;">Load demo CSV</button>
+            <button type="button" id="csv-preview-btn" class="export-btn" style="width:auto;">Preview</button>
+          </div>
+          <div id="csv-preview" class="csv-preview" hidden></div>
           <label for="num-spend">Spend</label>
           <input id="num-spend" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 1200">
           <label for="num-impr">Impressions</label>
           <input id="num-impr" class="brief-textarea" style="min-height:0;" type="number" min="1" step="1" placeholder="e.g. 8000">
           <label for="num-cpc">Or CPC / cost per impression</label>
-          <input id="num-cpc" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 0.10">
-          <label for="num-csv">Or CSV (spend, impressions, cpc columns)</label>
+          <input id="num-cpc" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 0.15">
+          <label for="num-csv">Or paste CSV (spend, impressions, cpc)</label>
           <textarea id="num-csv" class="brief-textarea" placeholder="spend,impressions&#10;1200,8000"></textarea>
           <div class="brief-actions">
             <button type="submit" id="numbers-submit-btn" class="cta-button" style="width:auto;">Apply numbers</button>
@@ -173,6 +181,48 @@
             </div>
             <div id="brief-error" class="brief-error"></div>
             <div id="brief-sample" class="brief-sample"></div>
+          </form>
+        </div>
+      </details>
+    </section>
+
+    <section class="brief-panel" aria-labelledby="audience-builder-title">
+      <details id="details-audience">
+        <summary>
+          <span id="audience-builder-title">Audience builder</span>
+          <span>Name the buyers and the leak. The lab uses these people for the three steps.</span>
+        </summary>
+        <div class="details-content">
+          <form id="audience-form" class="brief-form audience-form">
+            <label for="aud-company">Brand</label>
+            <input id="aud-company" class="brief-textarea" style="min-height:0;" required placeholder="Clayfolk">
+            <label for="aud-product">Offer</label>
+            <input id="aud-product" class="brief-textarea" style="min-height:0;" placeholder="handmade mugs">
+            <label for="aud-price">Price</label>
+            <input id="aud-price" class="brief-textarea" style="min-height:0;" required placeholder="18 pounds each">
+            <label for="aud-audience">Who should buy</label>
+            <input id="aud-audience" class="brief-textarea" style="min-height:0;" required placeholder="home cooks">
+            <label for="aud-leak">Who is wasted spend</label>
+            <input id="aud-leak" class="brief-textarea" style="min-height:0;" required placeholder="teen gift browsers">
+            <label for="aud-proof">Proof (optional)</label>
+            <input id="aud-proof" class="brief-textarea" style="min-height:0;" placeholder="Fired in small batches in Stoke">
+            <div class="audience-people">
+              <label>Buyer names (optional)</label>
+              <input id="aud-b1-name" class="brief-textarea" style="min-height:0;" placeholder="Marta">
+              <input id="aud-b1-title" class="brief-textarea" style="min-height:0;" placeholder="Home cook · wants a price">
+              <input id="aud-b2-name" class="brief-textarea" style="min-height:0;" placeholder="Kenji">
+              <input id="aud-b2-title" class="brief-textarea" style="min-height:0;" placeholder="Home cook · hates slogans">
+              <input id="aud-b3-name" class="brief-textarea" style="min-height:0;" placeholder="Elena">
+              <input id="aud-b3-title" class="brief-textarea" style="min-height:0;" placeholder="Home cook · rejects #1 claims">
+              <label>Leak person (optional)</label>
+              <input id="aud-leak-name" class="brief-textarea" style="min-height:0;" placeholder="Tess">
+              <input id="aud-leak-title" class="brief-textarea" style="min-height:0;" placeholder="Teen browsing gifts">
+            </div>
+            <div class="brief-actions">
+              <button type="submit" id="audience-submit-btn" class="cta-button" style="width:auto;">Run as step 1 with this audience</button>
+            </div>
+            <div id="audience-error" class="brief-error"></div>
+            <div id="audience-sample" class="brief-sample"></div>
           </form>
         </div>
       </details>
@@ -1216,6 +1266,8 @@
       }
       const custom = document.getElementById('custom-submit-btn');
       if (custom) custom.disabled = on;
+      const audienceBtn = document.getElementById('audience-submit-btn');
+      if (audienceBtn) audienceBtn.disabled = on;
       const playBtn = document.getElementById('play-all-btn');
       if (playBtn) playBtn.disabled = on;
     }
@@ -1347,6 +1399,82 @@
       }
     });
 
+    function audiencePayload() {
+      const buyers = [
+        { name: document.getElementById('aud-b1-name').value.trim(), title: document.getElementById('aud-b1-title').value.trim() },
+        { name: document.getElementById('aud-b2-name').value.trim(), title: document.getElementById('aud-b2-title').value.trim() },
+        { name: document.getElementById('aud-b3-name').value.trim(), title: document.getElementById('aud-b3-title').value.trim() }
+      ].filter((row) => row.name || row.title);
+      return {
+        company: document.getElementById('aud-company').value.trim(),
+        product: document.getElementById('aud-product').value.trim(),
+        price: document.getElementById('aud-price').value.trim(),
+        audience: document.getElementById('aud-audience').value.trim(),
+        leak: document.getElementById('aud-leak').value.trim(),
+        proof: document.getElementById('aud-proof').value.trim(),
+        buyers,
+        leak_name: document.getElementById('aud-leak-name').value.trim(),
+        leak_title: document.getElementById('aud-leak-title').value.trim()
+      };
+    }
+
+    document.getElementById('audience-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const errBox = document.getElementById('audience-error');
+      const sampleBox = document.getElementById('audience-sample');
+      errBox.textContent = '';
+      sampleBox.textContent = '';
+      state.loading = true;
+      lockSteps(true);
+      setWarNow('brief');
+      const room = document.getElementById('agent-room');
+      if (room) {
+        room.classList.add('live');
+        room.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      renderAgentTurns([{ role: 'Brief', name: 'Brief', text: 'Using the audience you named — then the same three-step graph.' }]);
+      try {
+        const res = await fetch('/api/lab/audience', {
+          method: 'POST',
+          headers: labHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify(audiencePayload())
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          errBox.textContent = data.error || data.detail || 'Could not build that audience.';
+          if (data.sample) sampleBox.textContent = 'Sample: ' + data.sample;
+          endWar();
+          return;
+        }
+        state.lab = 'custom';
+        state.briefing = {
+          company: data.company,
+          price: data.price,
+          audience: data.audience,
+          cta: data.cta,
+          reasoning: data.reasoning,
+          interpreted_by: data.interpreted_by
+        };
+        if (data.reasoning) {
+          renderAgentTurns([{ role: 'Brief', name: 'Brief', text: data.reasoning, live_or_cache: 'cache' }]);
+        }
+        state.currentRound = 1;
+        state.completed = { 1: false, 2: false, 3: false };
+        state.rounds = {};
+        state.loading = false;
+        await triggerLoadRound(1, { continue: true });
+        sampleBox.textContent = 'Step 1 is running on your buyers and leak. Use steps 2 and 3 next.';
+        showToast('Audience loaded — watch the shoppers.');
+        return;
+      } catch (err) {
+        errBox.textContent = 'Request failed. Make sure the server is up.';
+        endWar();
+      } finally {
+        state.loading = false;
+        lockSteps(false);
+      }
+    });
+
     async function saveEconomics(payload) {
       const res = await fetch('/api/lab/numbers', {
         method: 'POST',
@@ -1396,18 +1524,151 @@
       return isFinite(value) ? value : null;
     }
 
+    function renderCsvPreview(report) {
+      const box = document.getElementById('csv-preview');
+      if (!box) return;
+      if (!report) {
+        box.hidden = true;
+        box.innerHTML = '';
+        return;
+      }
+      box.hidden = false;
+      const mapped = report.mapped || {};
+      const totals = report.totals || {};
+      const rows = report.preview || [];
+      const columns = report.columns || [];
+      const head = columns.map((name) => '<th>' + esc(name) + '</th>').join('');
+      const body = rows.map((row) => '<tr>' + columns.map((name) => '<td>' + esc(row[name] || '') + '</td>').join('') + '</tr>').join('');
+      const table = columns.length
+        ? ('<table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table>')
+        : '';
+      const statusClass = report.ok ? 'ok' : 'bad';
+      const by = report.interpreted_by === 'llm' ? 'live model' : 'code';
+      const status = report.ok
+        ? (report.row_count + ' rows · can apply · read by ' + by)
+        : (report.error || 'Could not read CSV');
+      const mapLine = 'Mapped spend: ' + (mapped.spend || '—')
+        + ' · impressions: ' + (mapped.impressions || '—')
+        + ' · cpc: ' + (mapped.cpc || '—');
+      const totalLine = totals.spend != null
+        ? ('Totals: spend ' + totals.spend + (totals.impressions != null ? (', impressions ' + totals.impressions) : ''))
+        : (totals.cpc != null ? ('CPC ' + totals.cpc) : '');
+      const warns = (report.warnings || []).map((line) => '<div>' + esc(line) + '</div>').join('');
+      const reasoning = report.reasoning
+        ? ('<p class="reasoning">' + esc(report.reasoning) + '</p>')
+        : '';
+      const read = report.read || {};
+      const readLine = [read.campaign, read.platform, read.audience_guess].filter(Boolean).join(' · ');
+      box.innerHTML = '<div class="' + statusClass + '">' + esc(status) + '</div>'
+        + reasoning
+        + (readLine ? ('<div class="meta">' + esc(readLine) + '</div>') : '')
+        + '<div class="map">' + esc(mapLine) + '</div>'
+        + (totalLine ? ('<div>' + esc(totalLine) + '</div>') : '')
+        + warns
+        + table;
+      if (report.ok && totals.spend != null) {
+        const spendEl = document.getElementById('num-spend');
+        if (spendEl && !spendEl.value) spendEl.value = totals.spend;
+      }
+      if (report.ok && totals.impressions != null) {
+        const imprEl = document.getElementById('num-impr');
+        if (imprEl && !imprEl.value) imprEl.value = totals.impressions;
+      }
+      if (report.ok && totals.cpc != null) {
+        const cpcEl = document.getElementById('num-cpc');
+        if (cpcEl && !cpcEl.value) cpcEl.value = totals.cpc;
+      }
+    }
+
+    async function previewCsvText(text) {
+      const box = document.getElementById('csv-preview');
+      if (box) {
+        box.hidden = false;
+        box.innerHTML = '<div class="meta">Live model is reading this export…</div>';
+      }
+      const res = await fetch('/api/lab/numbers/preview', {
+        method: 'POST',
+        headers: labHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ csv: text || '' })
+      });
+      const data = await res.json();
+      renderCsvPreview(data);
+      return data;
+    }
+
+    async function readLocalCsvFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Could not read that file.'));
+        reader.readAsText(file);
+      });
+    }
+
+    const csvFileInput = document.getElementById('num-csv-file');
+    if (csvFileInput) {
+      csvFileInput.addEventListener('change', async () => {
+        const file = csvFileInput.files && csvFileInput.files[0];
+        if (!file) return;
+        try {
+          const text = await readLocalCsvFile(file);
+          document.getElementById('num-csv').value = text;
+          await previewCsvText(text);
+        } catch (err) {
+          renderCsvPreview({ ok: false, error: err.message || 'Could not read that file.', preview: [], columns: [], mapped: {}, warnings: [] });
+        }
+      });
+    }
+
+    const csvPreviewBtn = document.getElementById('csv-preview-btn');
+    if (csvPreviewBtn) {
+      csvPreviewBtn.addEventListener('click', async () => {
+        try {
+          await previewCsvText(document.getElementById('num-csv').value);
+        } catch (err) {
+          renderCsvPreview({ ok: false, error: 'Preview failed.', preview: [], columns: [], mapped: {}, warnings: [] });
+        }
+      });
+    }
+
+    const csvDemoBtn = document.getElementById('csv-demo-btn');
+    if (csvDemoBtn) {
+      csvDemoBtn.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/assets/demo/last-campaign.csv');
+          if (!res.ok) throw new Error('Demo CSV missing.');
+          const text = await res.text();
+          document.getElementById('num-csv').value = text;
+          const details = document.getElementById('details-numbers');
+          if (details) details.open = true;
+          await previewCsvText(text);
+        } catch (err) {
+          renderCsvPreview({ ok: false, error: err.message || 'Could not load demo CSV.', preview: [], columns: [], mapped: {}, warnings: [] });
+        }
+      });
+    }
+
     document.getElementById('numbers-form').addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const status = document.getElementById('numbers-status');
       status.textContent = '';
       try {
-        await saveEconomics({
+        const csv = document.getElementById('num-csv').value.trim();
+        if (csv) {
+          const report = await previewCsvText(csv);
+          if (report && report.ok === false) {
+            status.textContent = report.error || 'CSV did not validate.';
+            return;
+          }
+        }
+        const econ = await saveEconomics({
           spend: optNum('num-spend'),
           impressions: optNum('num-impr'),
           cpc: optNum('num-cpc'),
-          csv: document.getElementById('num-csv').value.trim()
+          csv
         });
-        status.textContent = 'Waste now uses your numbers. Who clicked is still the 80-impression simulator.';
+        const modelLine = (econ && econ.reasoning) ? econ.reasoning + ' ' : '';
+        status.textContent = modelLine + 'Waste now uses your numbers. Who clicked is still the 80-impression simulator.';
         showToast('Waste uses your campaign numbers.');
       } catch (err) {
         status.textContent = err.message || 'Could not apply numbers.';
@@ -1432,6 +1693,19 @@
           el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         const input = document.getElementById('brief-input');
+        if (input) input.focus();
+      });
+    }
+
+    const openAudienceBtn = document.getElementById('open-audience-btn');
+    if (openAudienceBtn) {
+      openAudienceBtn.addEventListener('click', () => {
+        const el = document.getElementById('details-audience');
+        if (el) {
+          el.open = true;
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        const input = document.getElementById('aud-company');
         if (input) input.focus();
       });
     }

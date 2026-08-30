@@ -290,6 +290,75 @@ def assemble_briefing(brief: str, parsed_price: str | None, llm: dict | None) ->
     }
 
 
+def briefing_from_audience(
+    company: str,
+    audience: str,
+    leak: str,
+    price: str,
+    product: str = "",
+    proof: str = "",
+    buyers: list | None = None,
+    leak_person: dict | None = None,
+) -> dict:
+    """Build the same briefing dict as a custom brief, from explicit audience fields."""
+    brand = str(company or "").strip()
+    who = str(audience or "").strip()
+    leak_label = str(leak or "").strip()
+    if not brand:
+        raise BriefError("Name the brand.")
+    if not who:
+        raise BriefError("Name who should buy.")
+    if not leak_label:
+        raise BriefError("Name the leak — who would click and never buy.")
+    price_blob = str(price or "").strip()
+    price_label = parse_price(price_blob) or parse_price(f"{brand}: {price_blob}")
+    if not price_label:
+        raise BriefError(
+            "No price — I will not invent €199 or any other number. "
+            "Add one, e.g. 49 pounds per month."
+        )
+    product_line = str(product or "").strip() or who
+    proof_line = str(proof or "").strip()
+    proof_bit = f" Proof: {proof_line}." if proof_line else ""
+    brief = (
+        f"{brand}: {product_line}. {price_label}. "
+        f"Buyer: {who}. Leak: {leak_label}.{proof_bit}"
+    )
+    llm_buyers = []
+    for row in buyers or []:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("name") or "").strip()
+        title = str(row.get("title") or "").strip()
+        if name or title:
+            llm_buyers.append({"name": name, "title": title or who})
+    leak_name = ""
+    leak_title = leak_label
+    if isinstance(leak_person, dict):
+        leak_name = str(leak_person.get("name") or "").strip()
+        leak_title = str(leak_person.get("title") or leak_title).strip() or leak_label
+    leak_role = re.sub(r"[^a-z0-9_]+", "_", leak_label.lower()).strip("_") or "window_shopper"
+    llm = {
+        "company": brand,
+        "product": product_line,
+        "price": price_label,
+        "audience_label": who,
+        "buyers": llm_buyers,
+        "leak": {"name": leak_name, "title": leak_title},
+        "leak_role": leak_role,
+        "reasoning": (
+            f"I set the audience from the builder: {who} should buy; "
+            f"{leak_label} is the leak. Price is {price_label}."
+        ),
+    }
+    briefing = assemble_briefing(brief, price_label, llm)
+    briefing["interpreted_by"] = "audience_builder"
+    briefing["reasoning"] = llm["reasoning"]
+    if proof_line:
+        briefing["proof"] = proof_line
+    return briefing
+
+
 def _company(brief: str, llm: dict | None) -> str:
     name = ""
     if llm:

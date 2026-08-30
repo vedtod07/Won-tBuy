@@ -8,7 +8,8 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel as PydBaseModel
 
-from app.agents.brief import BriefError, interpret_brief, parse_price
+from app.agents.brief import BriefError, briefing_from_audience, interpret_brief, parse_price
+from app.agents.csv_read import interpret_campaign_csv
 from app.agents.graph import run_lab_round, stream_lab_round
 from app.agents.optimizer import FIXED_PRICE
 from app.impressions import parse_campaign_economics
@@ -276,6 +277,23 @@ class NumbersRequest(PydBaseModel):
     csv: str = ""
 
 
+class BuyerRow(PydBaseModel):
+    name: str = ""
+    title: str = ""
+
+
+class AudienceRequest(PydBaseModel):
+    company: str = ""
+    product: str = ""
+    price: str = ""
+    audience: str = ""
+    leak: str = ""
+    proof: str = ""
+    buyers: list[BuyerRow] = []
+    leak_name: str = ""
+    leak_title: str = ""
+
+
 @app.get("/api/export/campaign.md")
 def export_campaign() -> Response:
     markdown = build_campaign_markdown()
@@ -300,21 +318,88 @@ def build_custom_campaign(brief: str, use_cache: bool = True):
 
 
 @app.post("/api/lab/numbers")
-def lab_numbers(req: NumbersRequest, request: Request) -> dict:
+def lab_numbers(req: NumbersRequest, request: Request, use_cache: bool = False) -> dict:
+    csv_read = None
     try:
-        economics = parse_campaign_economics(
-            spend=req.spend,
-            impressions=req.impressions,
-            cpc=req.cpc,
-            csv_text=req.csv or None,
-        )
+        if req.csv and str(req.csv).strip():
+            csv_read = interpret_campaign_csv(req.csv, use_cache=use_cache)
+            if not csv_read.get("ok"):
+                return {
+                    "error": csv_read.get("error") or "Could not read those numbers.",
+                    "csv": csv_read,
+                }
+            totals = csv_read.get("totals") or {}
+            economics = parse_campaign_economics(
+                spend=req.spend if req.spend is not None else totals.get("spend"),
+                impressions=req.impressions if req.impressions is not None else totals.get("impressions"),
+                cpc=req.cpc if req.cpc is not None else totals.get("cpc"),
+            )
+        else:
+            economics = parse_campaign_economics(
+                spend=req.spend,
+                impressions=req.impressions,
+                cpc=req.cpc,
+            )
     except (TypeError, ValueError):
         return {"error": "Could not read those numbers."}
     if not economics:
         return {"error": "Enter spend + impressions, a CPC, or a CSV with those columns."}
+    if csv_read:
+        economics["interpreted_by"] = csv_read.get("interpreted_by")
+        economics["reasoning"] = csv_read.get("reasoning")
+        economics["read"] = csv_read.get("read") or {}
     slot = get_lab(_lab_id(request))
     slot["economics"] = economics
-    return {"ok": True, "economics": economics}
+    return {"ok": True, "economics": economics, "csv": csv_read}
+
+
+@app.post("/api/lab/numbers/preview")
+def lab_numbers_preview(req: NumbersRequest, use_cache: bool = False) -> dict:
+    """Live model reads the export; code still sums spend. Does not attach economics."""
+    return interpret_campaign_csv(req.csv or "", use_cache=use_cache)
+
+
+@app.post("/api/lab/audience")
+def lab_audience(req: AudienceRequest, request: Request) -> dict:
+    """Activate a custom lab from explicit buyer / leak fields."""
+    try:
+        briefing = briefing_from_audience(
+            company=req.company,
+            audience=req.audience,
+            leak=req.leak,
+            price=req.price,
+            product=req.product,
+            proof=req.proof,
+            buyers=[{"name": row.name, "title": row.title} for row in req.buyers],
+            leak_person={"name": req.leak_name, "title": req.leak_title},
+        )
+    except BriefError as error:
+        return {
+            "error": str(error),
+            "sample": "Clayfolk / home cooks / teen gift browsers / 18 pounds each",
+        }
+    lab_id = _lab_id(request)
+    try:
+        activate_custom_lab(briefing, lab_id=lab_id)
+    except Exception:
+        return {
+            "error": "That audience loaded, but the lab could not run it. Check brand, buyers, leak, and price.",
+            "sample": "Clayfolk / home cooks / teen gift browsers / 18 pounds each",
+        }
+    return {
+        "ok": True,
+        "lab": "custom",
+        "company": briefing.get("company"),
+        "price": briefing.get("price"),
+        "audience": briefing.get("audience_label"),
+        "cta": briefing.get("cta"),
+        "reasoning": briefing.get("reasoning"),
+        "interpreted_by": briefing.get("interpreted_by"),
+        "personas": [
+            {"id": row.get("id"), "name": row.get("name"), "title": row.get("title"), "is_icp": row.get("is_icp")}
+            for row in briefing.get("personas") or []
+        ],
+    }
 
 
 @app.post("/api/lab/reset")

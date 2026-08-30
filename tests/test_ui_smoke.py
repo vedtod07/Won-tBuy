@@ -27,6 +27,15 @@ def test_dashboard_has_waste_compare_and_play():
     assert 'id="integ-login"' in HTML
     assert 'id="details-numbers"' in HTML
     assert "Paste last campaign numbers" in HTML
+    assert 'id="num-csv-file"' in HTML
+    assert 'id="csv-preview"' in HTML
+    assert 'id="csv-demo-btn"' in HTML
+    assert "/api/lab/numbers/preview" in HTML
+    assert "Live model is reading this export" in HTML
+    assert 'id="details-audience"' in HTML
+    assert 'id="audience-form"' in HTML
+    assert 'id="open-audience-btn"' in HTML
+    assert "/api/lab/audience" in HTML
     assert 'id="login-view"' in HTML
     assert 'id="login-form"' in HTML
     assert 'id="lab-view"' in HTML
