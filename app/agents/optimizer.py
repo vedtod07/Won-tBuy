@@ -94,18 +94,20 @@ def rewrite_copy(
     allow_fixture: bool = True,
     required_price: str = FIXED_PRICE,
     proof_line: str | None = None,
-) -> tuple[Campaign, str | None]:
+) -> tuple[Campaign, str | None, int]:
     """Optimizer tool: rewrite ad + page. Live path never silently pastes a fixture."""
     proof = proof_line or FIXED_PROOF
     offline = use_cache or use_cache_requested() or not live_key_present()
     if offline and allow_fixture and cached_campaign is not None:
-        return _cached_copy(campaign, cached_campaign), None
+        return _cached_copy(campaign, cached_campaign), None, 1
     if offline and not allow_fixture:
         repaired = _deterministic_repair(campaign, required_price, proof)
-        return repaired, None
+        return repaired, None, 1
 
     last_error = "Optimizer: rewrite_copy returned nothing."
-    for _attempt in range(2):
+    attempts = 0
+    for _attempt in range(4):
+        attempts += 1
         try:
             result = chat_json(
                 "Improve copy only. Return JSON only. Never change targeting or company. Use the required price exactly.",
@@ -118,7 +120,7 @@ def rewrite_copy(
             updates: dict = {"ad": ad, "page": page}
             if result.get("email"):
                 updates["email"] = Email.model_validate(result["email"])
-            return campaign.model_copy(update=updates, deep=True), None
+            return campaign.model_copy(update=updates, deep=True), None, attempts
         except CacheFallback as error:
             last_error = f"Optimizer: rewrite_copy had no live model ({error})."
             break
@@ -126,9 +128,13 @@ def rewrite_copy(
             last_error = f"Optimizer: rewrite failed validation ({error}). Retrying."
 
     if allow_fixture and cached_campaign is not None:
-        return _cached_copy(campaign, cached_campaign), None
+        return _cached_copy(campaign, cached_campaign), None, attempts or 1
     repaired = _deterministic_repair(campaign, required_price, proof)
-    return repaired, last_error.replace(" Retrying.", "") + " Applied a validated repair so the lab can show right words."
+    return (
+        repaired,
+        last_error.replace(" Retrying.", "") + " Applied a validated repair so the lab can show right words.",
+        attempts or 1,
+    )
 
 
 def _deterministic_repair(campaign: Campaign, required_price: str, proof: str = FIXED_PROOF) -> Campaign:

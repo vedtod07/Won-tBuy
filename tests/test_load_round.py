@@ -40,6 +40,9 @@ def test_round_one_keys():
     assert "chapter" in data
     assert data["chapter"]["eyes"] == "Wrong eyes"
     assert data["chapter"]["words"] == "Wrong words"
+    assert "waste" in data
+    assert data["waste"]["wasted_spend"] == 4.8
+    assert data["waste"]["off_icp"] == 48
 
 
 def test_round_one_accuracy_is_40():
@@ -126,6 +129,11 @@ def test_agent_turns_follow_graph_order():
     assert "Sampler" in roles
     assert roles.count("Persona") == 4
     assert roles[-1] == "Critic"
+    for row in turns:
+        assert "node" in row
+        assert row["live_or_cache"] in {"live", "cache"}
+        assert "latency_ms" in row
+        assert "model" in row
 
 
 def test_critic_summary_present():
@@ -151,6 +159,8 @@ def test_round_three_chapter_is_right_eyes_right_words():
     assert data["chapter"]["eyes"] == "Right eyes"
     assert data["chapter"]["words"] == "Right words"
     assert data["icp_purchase_rate"] == "3/3"
+    assert data["optimizer_iterations"] >= 1
+    assert data["waste"]["wasted_spend"] == 1.2
 
 
 def test_extract_price_from_brief():

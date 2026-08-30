@@ -1,15 +1,19 @@
 import json
+import threading
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
-from fastapi.responses import FileResponse, Response
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from pydantic import BaseModel as PydBaseModel
 
 from app.agents.brief import BriefError, interpret_brief, parse_price
-from app.agents.graph import run_lab_round
+from app.agents.graph import run_lab_round, stream_lab_round
 from app.agents.optimizer import FIXED_PRICE
-from app.llm import live_key_present
+from app.labs_store import list_labs as stored_labs
+from app.labs_store import load_lab as stored_load
+from app.labs_store import save_lab
+from app.llm import llm_status
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,43 +24,101 @@ app = FastAPI(title="Won'tBuy", version="0.2.0")
 
 load_dotenv()
 
+DEFAULT_LAB = "default"
+_lock = threading.Lock()
+_labs: dict[str, dict] = {}
+
 
 def read_fixture(round_number: int) -> dict:
     with (FIXTURES_DIR / f"round_{round_number}.json").open(encoding="utf-8") as fixture:
         return json.load(fixture)
 
 
-_lab: dict = {
-    "client": None,
-    "price": FIXED_PRICE,
-    "northline": True,
-    "briefing": None,
-}
+def _empty_slot() -> dict:
+    return {
+        "client": None,
+        "price": FIXED_PRICE,
+        "northline": True,
+        "briefing": None,
+    }
 
 
-def reset_lab() -> None:
-    _lab["client"] = None
-    _lab["price"] = FIXED_PRICE
-    _lab["northline"] = True
-    _lab["briefing"] = None
+def get_lab(lab_id: str = DEFAULT_LAB) -> dict:
+    with _lock:
+        slot = _labs.get(lab_id)
+        if slot is None:
+            slot = _empty_slot()
+            _labs[lab_id] = slot
+        return slot
 
 
-def activate_custom_lab(briefing: dict) -> None:
-    _lab["client"] = briefing["campaign"]
-    _lab["price"] = briefing["price"]
-    _lab["northline"] = False
-    _lab["briefing"] = briefing
+# Tests and older callers still import `_lab` as the default slot.
+_lab = get_lab(DEFAULT_LAB)
 
 
-def load_round(round_number: int, use_cache: bool = False) -> dict:
-    return run_lab_round(
+def reset_lab(lab_id: str = DEFAULT_LAB) -> None:
+    slot = get_lab(lab_id)
+    slot.update(_empty_slot())
+
+
+def activate_custom_lab(briefing: dict, lab_id: str = DEFAULT_LAB) -> None:
+    slot = get_lab(lab_id)
+    slot["client"] = briefing["campaign"]
+    slot["price"] = briefing["price"]
+    slot["northline"] = False
+    slot["briefing"] = briefing
+    save_lab(lab_id, briefing)
+
+
+def load_round(round_number: int, use_cache: bool = False, lab_id: str = DEFAULT_LAB) -> dict:
+    slot = get_lab(lab_id)
+    payload = run_lab_round(
         round_number,
         use_cache=use_cache,
-        client=_lab["client"],
-        required_price=_lab["price"],
-        northline=_lab["northline"],
-        briefing=_lab.get("briefing"),
+        client=slot["client"],
+        required_price=slot["price"],
+        northline=slot["northline"],
+        briefing=slot.get("briefing"),
     )
+    if slot.get("briefing"):
+        save_lab(lab_id, slot["briefing"], payload)
+    return payload
+
+
+def _lab_id(request: Request) -> str:
+    return (
+        request.headers.get("x-lab-id")
+        or request.query_params.get("lab_id")
+        or DEFAULT_LAB
+    )
+
+
+def build_compare(rounds: list[dict]) -> dict:
+    by_round = {row.get("round"): row for row in rounds}
+
+    def targeting(row: dict | None) -> dict:
+        return ((row or {}).get("campaign") or {}).get("targeting") or {}
+
+    def copy_bits(row: dict | None) -> dict:
+        campaign = (row or {}).get("campaign") or {}
+        ad = campaign.get("ad") or {}
+        page = campaign.get("page") or {}
+        return {
+            "headline": ad.get("headline"),
+            "price": page.get("price"),
+            "cta": ad.get("cta"),
+        }
+
+    r1, r2, r3 = by_round.get(1), by_round.get(2), by_round.get(3)
+    return {
+        "targeting": {"round_1": targeting(r1), "round_2": targeting(r2)},
+        "copy": {"round_2": copy_bits(r2), "round_3": copy_bits(r3)},
+        "score": {
+            "accuracy": [(row or {}).get("targeting_accuracy") for row in (r1, r2, r3)],
+            "purchase": [(row or {}).get("icp_purchase_rate") for row in (r1, r2, r3)],
+            "waste": [(row or {}).get("waste") for row in (r1, r2, r3)],
+        },
+    }
 
 
 def build_campaign_markdown() -> str:
@@ -68,6 +130,7 @@ def build_campaign_markdown() -> str:
         personas = data["personas"]
         accuracy = data["targeting_accuracy"]
         purchase = f"{sum(1 for p in personas if p.get('is_icp') and p.get('reached') and p.get('would_click'))}/{sum(1 for p in personas if p.get('is_icp') and p.get('reached'))}"
+        waste = data.get("waste") or {}
 
         lines.append(f"## Round {round_number} — {campaign['company']}")
         lines.append("")
@@ -106,6 +169,11 @@ def build_campaign_markdown() -> str:
         lines.append("### Metrics")
         lines.append(f"- Targeting accuracy: {accuracy}%")
         lines.append(f"- ICP purchase rate: {purchase}")
+        if waste:
+            lines.append(
+                f"- Wasted spend: €{waste.get('wasted_spend', 0):.2f} "
+                f"({waste.get('off_icp', 0)} off-ICP of {waste.get('impressions', 0)})"
+            )
         if data.get("critic_summary"):
             lines.append(f"- Critic: {data['critic_summary']}")
         lines.append("")
@@ -137,25 +205,54 @@ def health() -> dict[str, str]:
 
 @app.get("/api/status")
 def status() -> dict:
-    return {
-        "live": live_key_present(),
-        "mode": "live" if live_key_present() else "cached",
-    }
+    return llm_status()
 
 
 @app.get("/api/round/1")
-def round_one(use_cache: bool = False) -> dict:
-    return load_round(1, use_cache=use_cache)
+def round_one(request: Request, use_cache: bool = False) -> dict:
+    return load_round(1, use_cache=use_cache, lab_id=_lab_id(request))
 
 
 @app.get("/api/round/2")
-def round_two(use_cache: bool = False) -> dict:
-    return load_round(2, use_cache=use_cache)
+def round_two(request: Request, use_cache: bool = False) -> dict:
+    return load_round(2, use_cache=use_cache, lab_id=_lab_id(request))
 
 
 @app.get("/api/round/3")
-def round_three(use_cache: bool = False) -> dict:
-    return load_round(3, use_cache=use_cache)
+def round_three(request: Request, use_cache: bool = False) -> dict:
+    return load_round(3, use_cache=use_cache, lab_id=_lab_id(request))
+
+
+def _stream_round(round_number: int, request: Request, use_cache: bool):
+    slot = get_lab(_lab_id(request))
+
+    def generate():
+        for chunk in stream_lab_round(
+            round_number,
+            use_cache=use_cache,
+            client=slot["client"],
+            required_price=slot["price"],
+            northline=slot["northline"],
+            briefing=slot.get("briefing"),
+        ):
+            yield json.dumps(chunk) + "\n"
+
+    return StreamingResponse(generate(), media_type="application/x-ndjson")
+
+
+@app.get("/api/round/1/stream")
+def round_one_stream(request: Request, use_cache: bool = False):
+    return _stream_round(1, request, use_cache)
+
+
+@app.get("/api/round/2/stream")
+def round_two_stream(request: Request, use_cache: bool = False):
+    return _stream_round(2, request, use_cache)
+
+
+@app.get("/api/round/3/stream")
+def round_three_stream(request: Request, use_cache: bool = False):
+    return _stream_round(3, request, use_cache)
 
 
 class BriefRequest(PydBaseModel):
@@ -186,13 +283,34 @@ def build_custom_campaign(brief: str, use_cache: bool = True):
 
 
 @app.post("/api/lab/reset")
-def lab_reset() -> dict:
-    reset_lab()
+def lab_reset(request: Request) -> dict:
+    reset_lab(_lab_id(request))
     return {"ok": True, "lab": "northline"}
 
 
+@app.get("/api/labs")
+def labs() -> dict:
+    return {"labs": stored_labs()}
+
+
+@app.post("/api/labs/{lab_id}/restore")
+def restore_lab(lab_id: str) -> dict:
+    stored = stored_load(lab_id)
+    if not stored:
+        return {"error": "Lab not found."}
+    activate_custom_lab(stored["briefing"], lab_id=lab_id)
+    return {"ok": True, "lab_id": lab_id, "company": stored.get("company")}
+
+
+@app.get("/api/lab/play")
+def play_lab(request: Request, use_cache: bool = False) -> dict:
+    lab_id = _lab_id(request)
+    rounds = [load_round(n, use_cache=use_cache, lab_id=lab_id) for n in (1, 2, 3)]
+    return {"rounds": rounds, "compare": build_compare(rounds)}
+
+
 @app.post("/api/custom")
-def custom_campaign(req: BriefRequest, use_cache: bool = False) -> dict:
+def custom_campaign(req: BriefRequest, request: Request, use_cache: bool = False) -> dict:
     brief = req.brief.strip()
     if not brief:
         return {
@@ -213,9 +331,10 @@ def custom_campaign(req: BriefRequest, use_cache: bool = False) -> dict:
             "sample": "Brightside Dental: recall SMS for UK dentists. 49 pounds per month.",
         }
 
+    lab_id = _lab_id(request)
     try:
-        activate_custom_lab(briefing)
-        payload = load_round(1, use_cache=use_cache)
+        activate_custom_lab(briefing, lab_id=lab_id)
+        payload = load_round(1, use_cache=use_cache, lab_id=lab_id)
     except Exception:
         return {
             "error": "That brief loaded, but the lab could not run it. Try a shorter line: brand, who should buy it, and a price.",

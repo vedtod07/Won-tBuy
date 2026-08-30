@@ -2,7 +2,7 @@
 
 from langchain_core.tools import tool
 
-from app.impressions import sample_impressions, targeting_accuracy
+from app.impressions import sample_impressions, targeting_accuracy, wasted_spend
 from app.models import Campaign, Targeting
 
 
@@ -16,11 +16,13 @@ def run_sampler(targeting: dict, leak_roles: list[str] | None = None) -> dict:
     leaks = set(leak_roles or ["student"])
     impressions = sample_impressions(parsed, leak_roles=leaks)
     accuracy = targeting_accuracy(impressions)
+    waste = wasted_spend(impressions)
     return {
         "n": len(impressions),
         "seed": 42,
         "targeting_accuracy": accuracy,
         "impressions": impressions,
+        "waste": waste,
     }
 
 

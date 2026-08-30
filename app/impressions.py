@@ -66,3 +66,22 @@ def targeting_accuracy(impressions: list[dict]) -> float:
         return 0.0
     in_icp_count = sum(impression["in_icp"] for impression in impressions)
     return round(in_icp_count / len(impressions) * 100, 1)
+
+
+CPC_PER_IMPRESSION = 0.10  # demo constant: EUR per impression
+
+
+def wasted_spend(impressions: list[dict], cost_per_impression: float = CPC_PER_IMPRESSION) -> dict:
+    total = len(impressions)
+    on_icp = sum(1 for row in impressions if row.get("in_icp"))
+    off_icp = total - on_icp
+    return {
+        "impressions": total,
+        "on_icp": on_icp,
+        "off_icp": off_icp,
+        "cost_per_impression": cost_per_impression,
+        "currency": "EUR",
+        "wasted_spend": round(off_icp * cost_per_impression, 2),
+        "total_spend": round(total * cost_per_impression, 2),
+        "waste_share": round(off_icp / total * 100, 1) if total else 0.0,
+    }

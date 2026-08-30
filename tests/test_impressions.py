@@ -5,7 +5,7 @@ targeting, and that in-ICP rows only carry roles/industries/regions
 that the ICP sampler is allowed to pick.
 """
 
-from app.impressions import sample_impressions, targeting_accuracy
+from app.impressions import sample_impressions, targeting_accuracy, wasted_spend
 from app.models import (
     Campaign,
     Creative,
@@ -81,6 +81,26 @@ def test_in_icp_rows_have_valid_roles():
 
 def test_empty_impressions_returns_zero():
     assert targeting_accuracy([]) == 0.0
+
+
+def test_wasted_spend_broad_is_4_80():
+    impressions = sample_impressions(_broad_campaign().targeting)
+    waste = wasted_spend(impressions)
+    assert waste["impressions"] == 80
+    assert waste["on_icp"] == 32
+    assert waste["off_icp"] == 48
+    assert waste["wasted_spend"] == 4.8
+    assert waste["total_spend"] == 8.0
+    assert waste["waste_share"] == 60.0
+
+
+def test_wasted_spend_tight_is_1_20():
+    impressions = sample_impressions(_tight_campaign().targeting)
+    waste = wasted_spend(impressions)
+    assert waste["on_icp"] == 68
+    assert waste["off_icp"] == 12
+    assert waste["wasted_spend"] == 1.2
+    assert waste["waste_share"] == 15.0
 
 
 def test_every_row_has_required_fields():

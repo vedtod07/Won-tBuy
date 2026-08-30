@@ -100,6 +100,12 @@
       border: 1px solid var(--warning);
     }
 
+    .badge.rate-limited {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid #f87171;
+    }
+
     .badge.simulated {
       background: rgba(156, 163, 175, 0.15);
       color: var(--muted);
@@ -202,6 +208,8 @@
     .export-container {
       display: flex;
       justify-content: flex-end;
+      gap: 0.5rem;
+      flex-wrap: wrap;
       margin-bottom: 1.5rem;
     }
 
@@ -266,6 +274,58 @@
       .metrics-grid {
         grid-template-columns: 1fr 1fr;
       }
+    }
+
+    @media (min-width: 960px) {
+      .metrics-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    .compare-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .compare-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .compare-col h4 {
+      margin: 0 0 0.5rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    .compare-col p {
+      margin: 0 0 0.4rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .compare-empty {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .turn-meta {
+      margin-top: 0.35rem;
+      font-size: 0.72rem;
+      color: var(--muted);
     }
 
     .metric-card {
@@ -844,6 +904,7 @@
       text-transform: uppercase; color: var(--accent-glow);
     }
     .bubble .said { margin-top: 0.2rem; }
+    .bubble .turn-meta { margin-top: 0.35rem; font-size: 0.72rem; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -892,6 +953,7 @@
 
     <!-- Export Action -->
     <div class="export-container">
+      <button type="button" id="play-all-btn" class="export-btn">Play all three steps</button>
       <button type="button" id="export-btn" class="export-btn">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
@@ -919,7 +981,29 @@
         <div id="metric-purchase" class="metric-value">0/3</div>
         <div class="metric-sub">Only Klaus, Anika, and Mateo count as real buyers (if reached).</div>
       </div>
+      <div class="metric-card">
+        <div class="metric-title">Wasted spend</div>
+        <div id="metric-waste" class="metric-value">€4.80</div>
+        <div id="metric-waste-text" class="metric-sub">Off-ICP impressions at €0.10 each (demo math).</div>
+      </div>
     </div>
+
+    <section id="compare-panel" class="compare-panel">
+      <h3 class="section-title">Two failures, two fixes</h3>
+      <p id="compare-empty" class="compare-empty">Run step 2 (targeting) then step 3 (copy) to see the side-by-side.</p>
+      <div id="compare-grid" class="compare-grid" style="display:none;">
+        <div class="compare-col">
+          <h4>Targeting · step 1 vs 2</h4>
+          <p id="compare-t1"></p>
+          <p id="compare-t2"></p>
+        </div>
+        <div class="compare-col">
+          <h4>Copy · step 2 vs 3</h4>
+          <p id="compare-c2"></p>
+          <p id="compare-c3"></p>
+        </div>
+      </div>
+    </section>
 
     <!-- People Row -->
     <div>
@@ -1037,7 +1121,9 @@
     const state = {
       loading: false,
       currentRound: 1,
-      completed: { 1: false, 2: false, 3: false }
+      completed: { 1: false, 2: false, 3: false },
+      labId: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('lab-' + Date.now()),
+      rounds: {}
     };
 
     const narratives = {
@@ -1088,11 +1174,19 @@
       showToast(`Simulated "${text}" landing page conversion successfully submitted!`);
     });
 
-    function setBadgeMode(live) {
+    function labHeaders(extra) {
+      return Object.assign({ 'X-Lab-Id': state.labId }, extra || {});
+    }
+
+    function setBadgeMode(status) {
       const mode = document.getElementById('badge-mode');
-      if (live) {
+      if (!mode) return;
+      if (status && status.rate_limited) {
+        mode.className = 'badge rate-limited';
+        mode.textContent = 'Rate-limited → cached';
+      } else if (status === true || (status && status.live)) {
         mode.className = 'badge live';
-        mode.textContent = 'Live Gemini';
+        mode.textContent = status && status.model ? ('Live · ' + status.model) : 'Live Gemini';
       } else {
         mode.className = 'badge cached';
         mode.textContent = 'Offline mock';
@@ -1201,6 +1295,45 @@
       }
     }
 
+    function targetingLine(targeting) {
+      if (!targeting) return '—';
+      const roles = (targeting.roles || []).map((v) => String(v).replaceAll('_', ' ')).join(', ') || '—';
+      return 'Roles: ' + roles;
+    }
+
+    function renderCompare() {
+      const empty = document.getElementById('compare-empty');
+      const grid = document.getElementById('compare-grid');
+      const r1 = state.rounds[1];
+      const r2 = state.rounds[2];
+      const r3 = state.rounds[3];
+      if (!r2 && !r3) {
+        if (empty) empty.style.display = '';
+        if (grid) grid.style.display = 'none';
+        return;
+      }
+      if (empty) empty.style.display = 'none';
+      if (grid) grid.style.display = 'grid';
+      const t1 = document.getElementById('compare-t1');
+      const t2 = document.getElementById('compare-t2');
+      const c2 = document.getElementById('compare-c2');
+      const c3 = document.getElementById('compare-c3');
+      if (t1) t1.textContent = 'Step 1 — ' + targetingLine(r1 && r1.campaign && r1.campaign.targeting);
+      if (t2) t2.textContent = 'Step 2 — ' + targetingLine(r2 && r2.campaign && r2.campaign.targeting);
+      if (c2) {
+        const page = r2 && r2.campaign && r2.campaign.page;
+        const ad = r2 && r2.campaign && r2.campaign.ad;
+        c2.textContent = 'Step 2 — ' + ((ad && ad.headline) || 'same headline') + ' · price ' + ((page && page.price) || 'not shown');
+      }
+      if (c3) {
+        const page = r3 && r3.campaign && r3.campaign.page;
+        const ad = r3 && r3.campaign && r3.campaign.ad;
+        c3.textContent = r3
+          ? ('Step 3 — ' + ((ad && ad.headline) || 'rewritten') + ' · price ' + ((page && page.price) || 'shown'))
+          : 'Step 3 — run Fix copy to see the rewrite.';
+      }
+    }
+
     function render(data) {
       const r = data.round || 0;
       const c = data.campaign;
@@ -1232,6 +1365,29 @@
           : `Targeting accuracy: ${accuracy}%`);
 
       document.getElementById('metric-purchase').textContent = data.icp_purchase_rate || "0/3";
+
+      const waste = data.waste || {};
+      const wasteEl = document.getElementById('metric-waste');
+      const wasteText = document.getElementById('metric-waste-text');
+      if (wasteEl) {
+        const euros = Number(waste.wasted_spend || 0).toFixed(2);
+        wasteEl.textContent = '€' + euros;
+      }
+      if (wasteText) {
+        const off = waste.off_icp != null ? waste.off_icp : '?';
+        const share = waste.waste_share != null ? waste.waste_share : '?';
+        const onShare = waste.impressions ? Math.round((waste.on_icp / waste.impressions) * 100) : accuracy;
+        if (r === 1) {
+          wasteText.textContent = `Round 1 wasted €${Number(waste.wasted_spend || 0).toFixed(2)} reaching ${share}% off-ICP impressions.`;
+        } else {
+          wasteText.textContent = `Round ${r} spent it on the right ${onShare}% (${off} off-ICP of ${waste.impressions || 80}).`;
+        }
+      }
+
+      if (data.round) {
+        state.rounds[data.round] = data;
+        renderCompare();
+      }
 
       // Render people
       const peopleContainer = document.getElementById('people-container');
@@ -1358,6 +1514,17 @@
         said.textContent = turn.text;
         div.appendChild(who);
         div.appendChild(said);
+        if (turn.live_or_cache || turn.node) {
+          const meta = document.createElement('div');
+          meta.className = 'turn-meta';
+          const bits = [];
+          if (turn.node) bits.push(turn.node);
+          bits.push(turn.live_or_cache === 'live' ? 'live' : 'cache');
+          if (turn.model && turn.live_or_cache === 'live') bits.push(turn.model);
+          if (turn.latency_ms != null) bits.push(turn.latency_ms + 'ms');
+          meta.textContent = bits.join(' · ');
+          div.appendChild(meta);
+        }
         bubbles.appendChild(div);
       });
       }
@@ -1419,17 +1586,75 @@
       }
     }
 
+    async function readNdjson(response, onNode) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      let finalPayload = null;
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const chunk = JSON.parse(line);
+          if (chunk.type === 'node' && onNode) onNode(chunk);
+          if (chunk.type === 'final') finalPayload = chunk;
+        }
+      }
+      return finalPayload;
+    }
+
+    async function fetchRound(roundNumber) {
+      try {
+        const streamed = await fetch(`/api/round/${roundNumber}/stream`, { headers: labHeaders() });
+        if (streamed.ok && streamed.body) {
+          const finalPayload = await readNdjson(streamed, (chunk) => {
+            if (!chunk.turns || !chunk.turns.length) return;
+            const bubbles = document.getElementById('agent-bubbles');
+            const tag = document.getElementById('agent-tag');
+            if (tag) tag.textContent = 'Streaming · ' + (chunk.node || 'graph');
+            if (!bubbles) return;
+            bubbles.innerHTML = '';
+            chunk.turns.forEach((turn) => {
+              const div = document.createElement('div');
+              div.className = 'bubble';
+              const who = document.createElement('div');
+              who.className = 'who';
+              who.textContent = turn.role === 'Persona'
+                ? ('Shopper · ' + turn.name)
+                : (turn.role || chunk.node || 'Agent');
+              const said = document.createElement('div');
+              said.className = 'said';
+              said.textContent = turn.text;
+              div.appendChild(who);
+              div.appendChild(said);
+              bubbles.appendChild(div);
+            });
+          });
+          if (finalPayload) return finalPayload;
+        }
+      } catch (err) {
+        /* fall through to JSON */
+      }
+      const res = await fetch(`/api/round/${roundNumber}`, { headers: labHeaders() });
+      if (!res.ok) throw new Error('Round load error');
+      return res.json();
+    }
+
     async function triggerLoadRound(roundNumber) {
       if (state.loading) return;
       state.loading = true;
       
-      // Update step buttons to disabled state during request
       for (let i = 1; i <= 3; i++) {
         document.getElementById(`step-${i}`).disabled = true;
       }
       document.getElementById('custom-submit-btn').disabled = true;
+      const playBtn = document.getElementById('play-all-btn');
+      if (playBtn) playBtn.disabled = true;
 
-      // Show spinner in story area only
       document.getElementById('story-content').innerHTML = `
         <div class="loading-container">
           <span class="spinner-inner"></span>
@@ -1438,10 +1663,7 @@
       `;
 
       try {
-        const res = await fetch(`/api/round/${roundNumber}`);
-        if (!res.ok) throw new Error('Round load error');
-        const data = await res.json();
-        
+        const data = await fetchRound(roundNumber);
         state.currentRound = roundNumber;
         render(data);
         updateStepButtons();
@@ -1453,6 +1675,7 @@
           document.getElementById(`step-${i}`).disabled = false;
         }
         document.getElementById('custom-submit-btn').disabled = false;
+        if (playBtn) playBtn.disabled = false;
       }
     }
 
@@ -1461,7 +1684,7 @@
       try {
         const btn = document.getElementById('export-btn');
         btn.disabled = true;
-        const res = await fetch('/api/export/campaign.md');
+        const res = await fetch('/api/export/campaign.md', { headers: labHeaders() });
         if (!res.ok) throw new Error('Export failed');
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
@@ -1506,7 +1729,7 @@
       try {
         const res = await fetch('/api/custom', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: labHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ brief })
         });
         const data = await res.json();
@@ -1520,6 +1743,7 @@
         }
         state.currentRound = 1;
         state.completed = { 1: true, 2: false, 3: false };
+        state.rounds = {};
         render(data);
         updateStepButtons();
         sampleBox.textContent = 'This is step 1 of your brief. Click Step 2 (right eyes, same words), then Step 3 (right words). Refresh to return to Northline.';
@@ -1533,16 +1757,25 @@
       }
     });
 
+    document.getElementById('play-all-btn').addEventListener('click', async () => {
+      if (state.loading) return;
+      state.rounds = {};
+      for (const n of [1, 2, 3]) {
+        await triggerLoadRound(n);
+      }
+      showToast('All three steps played.');
+    });
+
     // Initial load
     async function boot() {
       try {
-        await fetch('/api/lab/reset', { method: 'POST' });
+        await fetch('/api/lab/reset', { method: 'POST', headers: labHeaders() });
       } catch (e) {}
       try {
-        const res = await fetch('/api/status');
+        const res = await fetch('/api/status', { headers: labHeaders() });
         if (res.ok) {
           const st = await res.json();
-          setBadgeMode(st.live);
+          setBadgeMode(st);
         }
       } catch (e) {
         setBadgeMode(false);
