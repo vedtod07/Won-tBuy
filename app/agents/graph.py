@@ -472,10 +472,10 @@ def _initial_state(
     return state, meta
 
 
-def _converge_copy(result: dict, meta: dict) -> dict:
-    """Round 3: keep rewriting (bounded) until ICP buyers click 3/3, when live."""
+def _converge_copy_steps(result: dict, meta: dict):
+    """Yield (node, state) for each extra round-3 rewrite so the UI can stream them."""
     if meta["round_number"] != 3 or not meta["live"]:
-        return result
+        return
     purchase = _purchase_rate(result.get("personas") or [])
     iterations = int(result.get("optimizer_iterations") or 1)
     while purchase != "3/3" and iterations < 4:
@@ -492,6 +492,17 @@ def _converge_copy(result: dict, meta: dict) -> dict:
         iterations += max(n, 1)
         result["campaign"] = campaign_as_dict(camp)
         result["optimizer_error"] = error
+        result["optimizer_iterations"] = iterations
+        feed = list(result.get("agent_feed") or [])
+        turns = list(result.get("agent_turns") or [])
+        retry = (
+            f"Buyers are still at {purchase}. I am rewriting again "
+            f"(pass {iterations}). Same targeting."
+        )
+        _turn(feed, turns, "Optimizer", "Optimizer", retry, _trace("optimizer"))
+        result["agent_feed"] = feed
+        result["agent_turns"] = turns
+        yield "optimizer", result
         shop = shoppers_node(
             {
                 **result,
@@ -502,11 +513,38 @@ def _converge_copy(result: dict, meta: dict) -> dict:
             }
         )
         result.update(shop)
+        yield "shoppers", result
         crit = critic_node({**result, **shop, "use_cache": meta["use_cache"]})
         result.update(crit)
         purchase = _purchase_rate(result.get("personas") or [])
+        yield "critic", result
     result["optimizer_iterations"] = iterations
+
+
+def _converge_copy(result: dict, meta: dict) -> dict:
+    """Round 3: keep rewriting (bounded) until ICP buyers click 3/3, when live."""
+    for _node, result in _converge_copy_steps(result, meta):
+        pass
     return result
+
+
+def _node_chunk(node: str, acc: dict, retry: bool = False) -> dict:
+    personas = acc.get("personas")
+    chunk = {
+        "type": "node",
+        "node": node,
+        "retry": retry,
+        "turns": list(acc.get("agent_turns") or []),
+        "targeting_accuracy": acc.get("targeting_accuracy"),
+        "waste": acc.get("waste"),
+        "campaign": acc.get("campaign"),
+        "optimizer_iterations": acc.get("optimizer_iterations") or 0,
+    }
+    if personas:
+        chunk["personas"] = personas
+        chunk["icp_purchase_rate"] = _purchase_rate(personas)
+        chunk["critic_summary"] = acc.get("critic_summary")
+    return chunk
 
 
 def _finalize(result: dict, meta: dict) -> dict:
@@ -522,8 +560,7 @@ def _finalize(result: dict, meta: dict) -> dict:
     if briefing and briefing.get("reasoning"):
         reason = briefing["reasoning"]
         live_brief = briefing.get("interpreted_by") == "llm"
-        feed.insert(0, f"Brief: {reason}")
-        turns.insert(0, {
+        brief_turn = {
             "role": "Brief",
             "name": "Brief",
             "text": reason,
@@ -531,7 +568,10 @@ def _finalize(result: dict, meta: dict) -> dict:
             "model": "cache" if not live_brief else last_call_meta()["model"],
             "live_or_cache": "live" if live_brief else "cache",
             "latency_ms": 0,
-        })
+        }
+        if not turns or turns[0].get("role") != "Brief":
+            feed.insert(0, f"Brief: {reason}")
+            turns.insert(0, brief_turn)
     waste = apply_economics(
         result.get("waste") or wasted_spend(result.get("impressions") or []),
         meta.get("economics"),
@@ -601,14 +641,24 @@ def stream_lab_round(
         round_number, use_cache, client, required_price, northline, briefing, economics
     )
     accumulated = dict(initial)
+    briefing = meta.get("briefing") or {}
+    if briefing.get("reasoning"):
+        live_brief = briefing.get("interpreted_by") == "llm"
+        brief_turn = {
+            "role": "Brief",
+            "name": "Brief",
+            "text": briefing["reasoning"],
+            "node": "brief",
+            "live_or_cache": "live" if live_brief else "cache",
+        }
+        accumulated["agent_turns"] = [brief_turn]
+        accumulated["agent_feed"] = [f"Brief: {briefing['reasoning']}"]
+        initial = dict(accumulated)
+        yield _node_chunk("brief", accumulated)
     for update in LAB_GRAPH.stream(initial, stream_mode="updates"):
         for node, delta in update.items():
             accumulated.update(delta)
-            yield {
-                "type": "node",
-                "node": node,
-                "turns": list(accumulated.get("agent_turns") or []),
-                "targeting_accuracy": accumulated.get("targeting_accuracy"),
-                "waste": accumulated.get("waste"),
-            }
+            yield _node_chunk(node, accumulated)
+    for node, accumulated in _converge_copy_steps(accumulated, meta):
+        yield _node_chunk(node, accumulated, retry=True)
     yield {"type": "final", **_finalize(accumulated, meta)}

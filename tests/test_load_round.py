@@ -19,6 +19,7 @@ from app.main import (
     reset_lab,
 )
 from app.agents.brief import interpret_brief
+from app.agents.graph import stream_lab_round
 
 
 @pytest.fixture(autouse=True)
@@ -218,3 +219,17 @@ def test_custom_three_steps_match_northline_story():
         ]
     ).lower()
     assert "#1" not in copy
+
+
+def test_stream_emits_nodes_with_live_metrics():
+    chunks = list(stream_lab_round(1, use_cache=True))
+    nodes = [row["node"] for row in chunks if row.get("type") == "node"]
+    assert nodes == ["optimizer", "sampler", "shoppers", "critic"]
+    sampler = next(row for row in chunks if row.get("node") == "sampler")
+    assert sampler["targeting_accuracy"] == 40.0
+    assert sampler["waste"]["wasted_spend"] == 4.8
+    shoppers = next(row for row in chunks if row.get("node") == "shoppers")
+    assert len(shoppers["personas"]) == 4
+    assert shoppers["icp_purchase_rate"] == "0/3"
+    assert chunks[-1]["type"] == "final"
+    assert chunks[-1]["targeting_accuracy"] == 40.0

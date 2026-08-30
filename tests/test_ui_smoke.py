@@ -27,6 +27,21 @@ def test_dashboard_has_waste_compare_and_play():
     assert 'id="integ-login"' in HTML
     assert 'id="details-numbers"' in HTML
     assert "Paste last campaign numbers" in HTML
+    assert 'id="login-view"' in HTML
+    assert 'id="login-form"' in HTML
+    assert 'id="lab-view"' in HTML
+    assert 'id="marketing-dashboard"' in HTML
+    assert 'id="funnel-reach"' in HTML
+    assert 'id="details-custom"' in HTML
+    assert 'id="brief-form"' in HTML
+    assert 'id="open-brief-btn"' in HTML
+    assert 'id="war-pipeline"' in HTML
+    assert 'id="agent-room"' in HTML
+    assert 'id="agent-timeline"' not in HTML  # created dynamically by streamed turns
+    assert "function renderAgentTimeline" in HTML
+    assert "renderAgentTimeline(chunk.turns || [], false)" in HTML
+    assert "render(finalPayload);" in HTML
+    assert "/assets/lab.css" in HTML
 
 
 def test_round_one_payload_has_waste_line():
@@ -46,3 +61,4 @@ def test_integrations_catalog_does_not_claim_live_ads():
     assert ids["meta"]["wired"] is False
     assert ids["google"]["wired"] is False
     assert ids["share"]["wired"] is True
+    assert ids["dashboard"]["wired"] is True

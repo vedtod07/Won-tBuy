@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "strict": true,
+    "noEmit": true,
+    "types": ["@figma/code-connect/figma-types"]
+  },
+  "include": ["app/static/figma/**/*.figma.ts"]
+}

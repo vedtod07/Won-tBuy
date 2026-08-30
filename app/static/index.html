@@ -6,1303 +6,56 @@
   <title>Won'tBuy · Agentic Marketing Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #0b0f19;
-      --surface: #141b2d;
-      --surface-raised: #1f2a45;
-      --border: #2c3a58;
-      --text: #f3f4f6;
-      --muted: #9ca3af;
-      --accent: #3b82f6;
-      --accent-glow: #60a5fa;
-      --warning: #f59e0b;
-      --success: #10b981;
-      --danger: #ef4444;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      line-height: 1.5;
-      padding-bottom: 5rem;
-    }
-
-    .container {
-      max-width: 1040px;
-      margin: 0 auto;
-      padding: 1.5rem;
-    }
-
-    /* Header & Badges */
-    header {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1.5rem;
-    }
-
-    @media (min-width: 768px) {
-      header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: flex-start;
-      }
-    }
-
-    .brand-title {
-      font-size: 1.75rem;
-      font-weight: 800;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .brand-subtitle {
-      font-size: 1rem;
-      color: var(--muted);
-      margin-top: 0.25rem;
-      max-width: 650px;
-    }
-
-    .status-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    .badge {
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 0.35rem 0.75rem;
-      border-radius: 9999px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .badge.live {
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--success);
-      border: 1px solid var(--success);
-    }
-
-    .badge.cached {
-      background: rgba(245, 158, 11, 0.15);
-      color: var(--warning);
-      border: 1px solid var(--warning);
-    }
-
-    .badge.rate-limited {
-      background: rgba(239, 68, 68, 0.15);
-      color: #f87171;
-      border: 1px solid #f87171;
-    }
-
-    .badge.simulated {
-      background: rgba(156, 163, 175, 0.15);
-      color: var(--muted);
-      border: 1px solid var(--border);
-    }
-
-    /* Actions & Buttons */
-    .steps-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    @media (max-width: 768px) {
-      .steps-row {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .step-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      background: var(--surface);
-      border: 2px solid var(--border);
-      padding: 1rem;
-      border-radius: 0.75rem;
-      color: var(--text);
-      font-family: inherit;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .step-btn:hover:not(:disabled) {
-      background: var(--surface-raised);
-      border-color: var(--muted);
-    }
-
-    .step-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .step-btn .step-num {
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin-bottom: 0.25rem;
-    }
-
-    .step-btn .step-title {
-      font-size: 1rem;
-      font-weight: 700;
-    }
-
-    .step-btn.active {
-      border-color: var(--accent);
-      background: rgba(59, 130, 246, 0.05);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-    }
-
-    .step-btn.done {
-      border-color: var(--success);
-    }
-
-    .step-btn.done .step-num {
-      color: var(--success);
-    }
-
-    .step-btn.glow {
-      border-color: var(--warning);
-      animation: pulse-glow 2s infinite ease-in-out;
-    }
-
-    @keyframes pulse-glow {
-      0% { box-shadow: 0 0 0 0px rgba(245, 158, 11, 0.4); }
-      50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.2); }
-      100% { box-shadow: 0 0 0 0px rgba(245, 158, 11, 0); }
-    }
-
-    .hint-line {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--warning);
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .hint-line::before {
-      content: "👉";
-    }
-
-    /* Export Bar */
-    .export-container {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-bottom: 1.5rem;
-    }
-
-    .export-btn {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 0.5rem;
-      padding: 0.5rem 1rem;
-      font-family: inherit;
-      font-size: 0.875rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: all 0.15s ease;
-    }
-
-    .export-btn:hover:not(:disabled) {
-      background: var(--surface-raised);
-      border-color: var(--muted);
-    }
-
-    .export-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .integrations-panel {
-      background: var(--surface);
-      border: 1px dashed var(--border);
-      border-radius: 0.75rem;
-      padding: 1rem 1.15rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .integrations-kicker {
-      font-size: 0.72rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.35rem;
-    }
-
-    .integrations-lead {
-      font-size: 0.88rem;
-      color: var(--muted);
-      margin: 0 0 0.85rem;
-    }
-
-    .integ-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
-    }
-
-    @media (min-width: 720px) {
-      .integ-grid {
-        grid-template-columns: repeat(4, 1fr);
-      }
-    }
-
-    .integ-btn {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 0.5rem;
-      padding: 0.55rem 0.65rem;
-      font-family: inherit;
-      font-size: 0.8rem;
-      font-weight: 650;
-      cursor: pointer;
-      text-align: left;
-      display: flex;
-      flex-direction: column;
-      gap: 0.15rem;
-    }
-
-    .integ-btn:hover {
-      background: var(--surface-raised);
-      border-color: var(--muted);
-    }
-
-    .integ-btn .integ-soon {
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--accent-glow);
-    }
-
-    .integ-btn.wired .integ-soon {
-      color: var(--success);
-    }
-
-    .integ-modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.55);
-      z-index: 1100;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-
-    .integ-modal-backdrop.open {
-      display: flex;
-    }
-
-    .integ-modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 0.85rem;
-      max-width: 32rem;
-      width: 100%;
-      padding: 1.25rem 1.35rem;
-    }
-
-    .integ-modal h3 {
-      margin: 0 0 0.5rem;
-      font-size: 1.05rem;
-    }
-
-    .integ-modal p {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin: 0 0 0.85rem;
-    }
-
-    .integ-modal label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin: 0.5rem 0 0.25rem;
-    }
-
-    .integ-modal input {
-      width: 100%;
-      background: #0b0f19;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 0.4rem;
-      padding: 0.5rem 0.65rem;
-      font-family: inherit;
-    }
-
-    .integ-modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
-    }
-
-    /* Story Area */
-    .story-banner {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border-left: 4px solid var(--accent);
-      padding: 1.25rem;
-      border-radius: 0.5rem;
-      margin-bottom: 2rem;
-      min-height: 80px;
-      display: flex;
-      align-items: center;
-    }
-
-    .story-banner.r1 { border-color: var(--warning); }
-    .story-banner.r2 { border-color: var(--warning); }
-    .story-banner.r3 { border-color: var(--success); }
-
-    .story-text {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: #ffffff;
-      line-height: 1.5;
-    }
-
-    /* Metrics Section */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    @media (min-width: 640px) {
-      .metrics-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (min-width: 960px) {
-      .metrics-grid {
-        grid-template-columns: 1fr 1fr 1fr;
-      }
-    }
-
-    .compare-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      padding: 1.25rem;
-      margin-bottom: 2rem;
-    }
-
-    .compare-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
-    @media (min-width: 768px) {
-      .compare-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    .compare-col h4 {
-      margin: 0 0 0.5rem;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-    }
-
-    .compare-col p {
-      margin: 0 0 0.4rem;
-      font-size: 0.9rem;
-      color: var(--text);
-    }
-
-    .compare-empty {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin: 0;
-    }
-
-    .turn-meta {
-      margin-top: 0.35rem;
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-
-    .metric-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      padding: 1.25rem;
-    }
-
-    .metric-title {
-      font-size: 0.8rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin-bottom: 0.5rem;
-    }
-
-    .metric-value {
-      font-size: 2.25rem;
-      font-weight: 800;
-      color: #ffffff;
-      margin-bottom: 0.25rem;
-    }
-
-    .metric-sub {
-      font-size: 0.9rem;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    /* People Cards */
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin-bottom: 0.35rem;
-    }
-    .people-kicker {
-      font-size: 0.75rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--accent-glow);
-      margin-bottom: 0.35rem;
-    }
-    .people-sub {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin: 0 0 1rem;
-    }
-    .frozen-tag {
-      display: inline-block;
-      font-size: 0.68rem;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--muted);
-      border: 1px solid var(--border);
-      padding: 0.15rem 0.4rem;
-      border-radius: 999px;
-      margin-bottom: 0.35rem;
-    }
-
-    .people-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 2.5rem;
-    }
-
-    @media (max-width: 1024px) {
-      .people-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .people-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .person-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 200px;
-      transition: all 0.2s ease;
-    }
-
-    .person-card.wasted {
-      border: 2px solid var(--warning);
-      background: linear-gradient(135deg, #2b1f13, #141b2d);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
-    }
-
-    .person-card.wasted .wasted-tag {
-      background: var(--warning);
-      color: #0b0f19;
-      font-size: 0.65rem;
-      font-weight: 900;
-      padding: 0.2rem 0.5rem;
-      border-radius: 0.25rem;
-      display: inline-block;
-      margin-bottom: 0.5rem;
-      letter-spacing: 0.05em;
-      align-self: flex-start;
-    }
-
-    .person-card.success-card {
-      border: 1px solid var(--success);
-      background: linear-gradient(135deg, #0d261e, #141b2d);
-    }
-
-    .person-card.danger-card {
-      border: 1px solid var(--danger);
-      background: linear-gradient(135deg, #261214, #141b2d);
-    }
-
-    .person-card.unreached-card {
-      opacity: 0.45;
-    }
-
-    .person-meta {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--accent-glow);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      margin-bottom: 0.25rem;
-    }
-
-    .person-card.wasted .person-meta {
-      color: var(--warning);
-    }
-
-    .person-name {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .person-verdict {
-      font-size: 0.9rem;
-      font-weight: 800;
-    }
-
-    .person-verdict.yes { color: var(--success); }
-    .person-verdict.no { color: var(--danger); }
-    .person-verdict.unreached { color: var(--muted); }
-
-    .person-quote {
-      font-style: italic;
-      font-size: 0.85rem;
-      color: var(--text);
-      margin-top: 0.75rem;
-      border-left: 2px solid var(--border);
-      padding-left: 0.5rem;
-      overflow-wrap: anywhere;
-      line-height: 1.4;
-    }
-
-    .person-reason {
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-top: 0.5rem;
-      line-height: 1.4;
-    }
-
-    /* Ad & Landing Previews */
-    .previews-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-      margin-bottom: 2.5rem;
-    }
-
-    @media (min-width: 768px) {
-      .previews-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    .preview-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 320px;
-    }
-
-    .preview-title {
-      font-size: 0.75rem;
-      font-weight: 800;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .ad-body {
-      margin-bottom: 1.5rem;
-    }
-
-    .ad-headline {
-      font-size: 1.35rem;
-      font-weight: 800;
-      color: #ffffff;
-      line-height: 1.25;
-      margin-bottom: 0.5rem;
-      overflow-wrap: anywhere;
-    }
-
-    .ad-desc {
-      font-size: 0.95rem;
-      color: var(--muted);
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-    }
-
-    .cta-button {
-      background: var(--accent);
-      color: #0b0f19;
-      border: none;
-      border-radius: 0.5rem;
-      padding: 0.75rem 1.25rem;
-      font-family: inherit;
-      font-weight: 800;
-      font-size: 0.95rem;
-      cursor: pointer;
-      width: 100%;
-      text-align: center;
-      transition: all 0.15s ease;
-      display: block;
-    }
-
-    .cta-button:hover:not(:disabled) {
-      background: var(--accent-glow);
-      transform: translateY(-1px);
-    }
-
-    .cta-button:active:not(:disabled) {
-      transform: translateY(1px);
-    }
-
-    .cta-button.neutral {
-      background: #374151;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .cta-button.neutral:hover:not(:disabled) {
-      background: #4b5563;
-    }
-
-    .cta-button.reasoning {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.55rem;
-      cursor: wait;
-      width: auto;
-    }
-
-    .cta-button .btn-spin {
-      width: 0.9rem;
-      height: 0.9rem;
-      border: 2px solid rgba(11, 15, 25, 0.25);
-      border-top-color: #0b0f19;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      flex-shrink: 0;
-    }
-
-    /* Landing Content Specifics */
-    .landing-body {
-      margin-bottom: 1.5rem;
-    }
-
-    .landing-headline {
-      font-size: 1.35rem;
-      font-weight: 800;
-      color: #ffffff;
-      line-height: 1.25;
-      margin-bottom: 0.75rem;
-      overflow-wrap: anywhere;
-    }
-
-    .landing-highlight {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--accent-glow);
-      border-left: 2px solid var(--accent);
-      padding-left: 0.50rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .landing-bullets {
-      list-style: none;
-      margin-bottom: 0.75rem;
-    }
-
-    .landing-bullets li {
-      font-size: 0.85rem;
-      color: var(--muted);
-      position: relative;
-      padding-left: 1.2rem;
-      margin-bottom: 0.25rem;
-    }
-
-    .landing-bullets li::before {
-      content: "✓";
-      position: absolute;
-      left: 0;
-      color: var(--success);
-      font-weight: 800;
-    }
-
-    .landing-proof {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--success);
-      margin-bottom: 0.75rem;
-    }
-
-    .landing-price {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--success);
-      margin-bottom: 1rem;
-    }
-
-    .landing-price.missing {
-      color: var(--danger);
-      font-weight: 700;
-    }
-
-    /* Email Block */
-    .email-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .email-meta {
-      font-size: 0.85rem;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .email-subject {
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    .email-body {
-      font-size: 0.9rem;
-      color: var(--text);
-      white-space: pre-wrap;
-      line-height: 1.6;
-      font-family: inherit;
-    }
-
-    /* Toaster */
-    #toast {
-      position: fixed;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: #1e293b;
-      border: 1px solid var(--accent);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-      color: #ffffff;
-      padding: 0.75rem 1.5rem;
-      border-radius: 9999px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      z-index: 1000;
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    #toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
-
-    /* Spinner */
-    .spinner-inner {
-      display: inline-block;
-      width: 1.5rem;
-      height: 1.5rem;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .loading-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      width: 100%;
-    }
-
-    /* Details styling */
-    details {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 0.5rem;
-      margin-top: 1rem;
-    }
-
-    details summary {
-      padding: 1rem;
-      font-weight: 700;
-      font-size: 0.95rem;
-      cursor: pointer;
-      user-select: none;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    details summary:hover {
-      background: var(--surface-raised);
-    }
-
-    details .details-content {
-      padding: 1rem;
-      border-top: 1px solid var(--border);
-      background: #0f1422;
-      border-bottom-left-radius: 0.5rem;
-      border-bottom-right-radius: 0.5rem;
-    }
-
-    .feed-list {
-      list-style: none;
-    }
-
-    .feed-list li {
-      font-size: 0.85rem;
-      color: var(--muted);
-      padding: 0.35rem 0;
-      border-bottom: 1px solid #141b2d;
-    }
-
-    .feed-list li:last-child {
-      border-bottom: none;
-    }
-
-    /* Custom form */
-    .brief-form {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .brief-textarea {
-      background: #0b0f19;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 0.5rem;
-      padding: 0.75rem;
-      font-family: inherit;
-      font-size: 0.9rem;
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .brief-textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .brief-actions {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .brief-error {
-      color: var(--danger);
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-top: 0.25rem;
-    }
-
-    .brief-sample {
-      color: var(--muted);
-      font-size: 0.8rem;
-      font-style: italic;
-      margin-top: 0.25rem;
-    }
-
-    .li-chrome {
-      display: flex; align-items: center; gap: 0.65rem;
-      margin-bottom: 0.75rem; color: var(--muted); font-size: 0.8rem;
-    }
-    .li-avatar {
-      width: 2rem; height: 2rem; border-radius: 999px;
-      display: grid; place-items: center;
-      background: var(--surface-raised); color: #fff; font-weight: 800;
-      border: 1px solid var(--border);
-    }
-    .li-chrome .promoted { color: var(--muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
-    .li-chrome .url { color: var(--accent-glow); }
-    .mock-board {
-      background: #0b0f19; border: 1px solid var(--border); border-radius: 0.5rem;
-      padding: 0.6rem 0.75rem; margin: 0.75rem 0; font-size: 0.82rem;
-    }
-    .board-row {
-      display: flex; justify-content: space-between; padding: 0.28rem 0;
-      color: var(--muted); border-bottom: 1px solid var(--border);
-    }
-    .board-row:last-child { border-bottom: none; }
-    .board-row .down { color: var(--danger); font-weight: 700; }
-    .landing-nav { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.65rem; }
-    .eyebrow {
-      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--accent-glow); margin-bottom: 0.35rem;
-    }
-    .price-slot {
-      margin: 0.5rem 0; font-weight: 700; color: var(--text);
-    }
-    .mail-chrome {
-      font-size: 0.82rem; color: var(--muted); margin-bottom: 0.6rem; line-height: 1.45;
-    }
-    .person-title {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 0.15rem;
-      line-height: 1.35;
-      overflow-wrap: anywhere;
-    }
-    .agent-room {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      padding: 1.1rem 1.2rem;
-      margin-bottom: 1.25rem;
-    }
-    .agent-tag { color: var(--muted); font-size: 0.88rem; margin: 0 0 0.85rem; }
-    .agent-bubbles { display: flex; flex-direction: column; gap: 0.55rem; }
-    .bubble {
-      background: var(--surface-raised);
-      border-left: 3px solid var(--accent);
-      border-radius: 0.5rem;
-      padding: 0.55rem 0.75rem;
-    }
-    .bubble .who {
-      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em;
-      text-transform: uppercase; color: var(--accent-glow);
-    }
-    .bubble .said { margin-top: 0.2rem; }
-    .bubble .turn-meta { margin-top: 0.35rem; font-size: 0.72rem; color: var(--muted); }
-    /* Product shell refresh */
-    body {
-      background:
-        radial-gradient(circle at 8% -10%, rgba(52, 211, 153, 0.12), transparent 28rem),
-        radial-gradient(circle at 95% 0%, rgba(59, 130, 246, 0.12), transparent 26rem),
-        #090d16;
-      letter-spacing: -0.01em;
-    }
-
-    .container { max-width: 1180px; padding: 1.25rem 1.5rem 5rem; }
-
-    header {
-      align-items: center;
-      border: 1px solid rgba(92, 112, 148, 0.34);
-      border-radius: 18px;
-      background: rgba(20, 27, 45, 0.78);
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
-      padding: 1rem 1.2rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .brand-title { font-size: 1.25rem; letter-spacing: -0.04em; }
-    .brand-subtitle { font-size: 0.82rem; color: #aebbd0; margin-top: 0.1rem; }
-    .status-badges { justify-content: flex-end; }
-
-    .steps-row {
-      gap: 0.65rem;
-      padding: 0.35rem;
-      border: 1px solid rgba(92, 112, 148, 0.3);
-      border-radius: 16px;
-      background: rgba(20, 27, 45, 0.55);
-    }
-
-    .step {
-      border: 1px solid transparent;
-      border-radius: 12px;
-      background: transparent;
-      transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
-    }
-    .step:hover { background: rgba(59, 130, 246, 0.08); transform: translateY(-1px); }
-    .step.active { background: rgba(59, 130, 246, 0.13); border-color: rgba(96, 165, 250, 0.45); }
-
-    .panel, .card, .agent-room, .custom-brief, .numbers-panel, .compare-panel {
-      border-color: rgba(92, 112, 148, 0.36);
-      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.16);
-    }
-
-    .section-heading, .panel-heading { letter-spacing: -0.035em; }
-    .section-heading h2, .panel-heading h2 { font-size: 1.05rem; }
-    .eyebrow, .section-kicker { color: #7dd3fc; letter-spacing: 0.12em; }
-
-    .metrics, .metric-grid {
-      gap: 0.75rem;
-      margin-top: 1rem;
-    }
-    .metric {
-      position: relative;
-      overflow: hidden;
-      border-radius: 14px;
-      background: linear-gradient(145deg, rgba(31, 42, 69, 0.9), rgba(20, 27, 45, 0.9));
-      border: 1px solid rgba(92, 112, 148, 0.4);
-    }
-    .metric::after {
-      content: "";
-      position: absolute;
-      width: 5rem;
-      height: 5rem;
-      right: -2rem;
-      top: -2rem;
-      border-radius: 50%;
-      background: rgba(52, 211, 153, 0.08);
-    }
-    .metric-value { font-size: clamp(1.45rem, 3vw, 2.1rem); letter-spacing: -0.06em; }
-    .metric-label { color: #aebbd0; font-size: 0.7rem; letter-spacing: 0.08em; }
-
-    button, .button, input, textarea, select { font-family: inherit; }
-    button, .button {
-      border-radius: 9px;
-      transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
-    }
-    button:hover, .button:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0,0,0,.18); }
-    input, textarea, select {
-      border-color: rgba(92, 112, 148, 0.55);
-      background: rgba(9, 13, 22, 0.72);
-      border-radius: 9px;
-    }
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: #60a5fa;
-      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
-    }
-
-    .agent-feed, .agent-log { background: rgba(9, 13, 22, 0.38); border-radius: 12px; }
-    .agent-turn { border-bottom-color: rgba(92, 112, 148, 0.22); }
-    .compare-panel { background: linear-gradient(145deg, rgba(20, 27, 45, .92), rgba(15, 23, 42, .86)); }
-    .compare-column { border-radius: 12px; background: rgba(9, 13, 22, .28); }
-
-    .empty-state, .loading-state { border-radius: 14px; border: 1px dashed rgba(125, 211, 252, .35); }
-    @media (max-width: 700px) {
-      .container { padding-left: 0.8rem; padding-right: 0.8rem; }
-      header { align-items: flex-start; }
-      .status-badges { justify-content: flex-start; }
-      .steps-row { grid-template-columns: 1fr; }
-      .step { min-height: 3.2rem; }
-    }
-
-    /* Campaign Control Room visual system */
-    :root {
-      --ink: #e9eef7;
-      --muted: #8e9bb0;
-      --line: rgba(148, 163, 184, .16);
-      --surface: rgba(18, 25, 39, .88);
-      --surface-raised: rgba(25, 34, 52, .94);
-      --mint: #65e6ad;
-      --mint-soft: rgba(101, 230, 173, .12);
-      --amber: #f4c96b;
-      --red-soft: rgba(248, 113, 113, .1);
-    }
-
-    body {
-      background:
-        radial-gradient(900px 480px at 84% -10%, rgba(62, 102, 146, .2), transparent 65%),
-        radial-gradient(720px 420px at -12% 30%, rgba(36, 78, 74, .14), transparent 68%),
-        #0b1019;
-      color: var(--ink);
-      letter-spacing: -0.01em;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .18;
-      background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-      background-size: 32px 32px;
-      mask-image: linear-gradient(to bottom, black, transparent 75%);
-    }
-
-    .container { max-width: 1180px; padding-bottom: 5rem; }
-    header {
-      position: relative;
-      margin: 1.25rem 0 2.4rem;
-      padding: 1.1rem 1.25rem 1.15rem;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(15, 22, 35, .82);
-      box-shadow: 0 20px 50px rgba(0,0,0,.2);
-      backdrop-filter: blur(18px);
-    }
-    .brand-title {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-      font-size: clamp(1.25rem, 2.2vw, 1.65rem);
-      letter-spacing: -.055em;
-    }
-    .brand-title::before {
-      content: "WB";
-      display: grid;
-      place-items: center;
-      width: 2rem;
-      height: 2rem;
-      border-radius: 9px;
-      color: #07130f;
-      background: var(--mint);
-      font-size: .66rem;
-      font-weight: 800;
-      letter-spacing: .04em;
-      box-shadow: 0 0 0 5px var(--mint-soft);
-    }
-    .brand-title span { color: var(--muted) !important; font-size: .82rem !important; font-weight: 500 !important; letter-spacing: -.01em; }
-    .brand-subtitle { max-width: 700px; margin-top: .65rem; color: var(--muted); line-height: 1.55; }
-    .status-badges { gap: .45rem; }
-
-    .steps-row { gap: .7rem; margin-bottom: 1.5rem; }
-    .step {
-      min-height: 4.5rem;
-      border: 1px solid var(--line);
-      border-radius: 13px;
-      background: rgba(16, 23, 36, .7);
-      transition: border-color .18s ease, background .18s ease, transform .18s ease;
-    }
-    .step:hover { transform: translateY(-2px); border-color: rgba(101,230,173,.35); }
-    .step.active { border-color: rgba(101,230,173,.65); background: linear-gradient(135deg, var(--mint-soft), rgba(18,25,39,.9)); box-shadow: 0 10px 24px rgba(0,0,0,.16); }
-    .step-number { color: var(--mint); font-weight: 750; }
-    .step-title { color: var(--ink); }
-    .step-subtitle { color: var(--muted); }
-
-    .agent-room, .panel, .card, .custom-brief, .numbers-panel, .compare-panel {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--surface);
-      box-shadow: 0 18px 45px rgba(0,0,0,.16);
-    }
-    .agent-room { padding: 1.1rem; }
-    .agent-room::before {
-      content: "LIVE WORKSPACE";
-      display: block;
-      margin-bottom: .75rem;
-      color: var(--mint);
-      font-size: .62rem;
-      font-weight: 800;
-      letter-spacing: .15em;
-    }
-    .agent-feed, .agent-log { border: 1px solid var(--line); background: rgba(7, 12, 21, .44); }
-    .agent-turn { border-bottom-color: var(--line); }
-
-    .metrics, .metric-grid { gap: .8rem; margin: 1rem 0 1.4rem; }
-    .metric {
-      min-height: 7.3rem;
-      padding: 1.05rem;
-      border: 1px solid var(--line);
-      border-radius: 15px;
-      background: linear-gradient(145deg, var(--surface-raised), rgba(15,22,35,.92));
-      box-shadow: 0 15px 28px rgba(0,0,0,.12);
-    }
-    .metric-label { color: var(--muted); font-size: .64rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
-    .metric-value { margin-top: .45rem; color: var(--ink); font-size: clamp(1.8rem, 4vw, 2.65rem); font-weight: 760; letter-spacing: -.08em; }
-    .metric-sub { color: var(--muted); line-height: 1.35; }
-    #metric-waste .metric-value { color: var(--amber); }
-
-    .section-heading, .panel-heading { border-bottom: 1px solid var(--line); padding-bottom: .75rem; }
-    .section-heading h2, .panel-heading h2 { color: var(--ink); font-size: 1.05rem; letter-spacing: -.04em; }
-    .section-heading p, .panel-heading p { color: var(--muted); }
-    .section-kicker, .eyebrow { color: var(--mint); font-size: .64rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-
-    button, .button {
-      border-radius: 9px;
-      border: 1px solid rgba(101,230,173,.32);
-      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
-    }
-    button:hover, .button:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(0,0,0,.2); }
-    input, textarea, select { border: 1px solid var(--line); border-radius: 9px; background: rgba(7,12,21,.65); color: var(--ink); }
-    input:focus, textarea:focus, select:focus { border-color: var(--mint); box-shadow: 0 0 0 3px var(--mint-soft); }
-    .compare-panel { background: linear-gradient(145deg, rgba(21,31,46,.95), rgba(15,22,35,.9)); }
-    .compare-column { border: 1px solid var(--line); border-radius: 12px; background: rgba(7,12,21,.25); }
-    .compare-column h3 { color: var(--mint); }
-    .custom-brief, .numbers-panel { background: linear-gradient(145deg, rgba(21,30,45,.9), rgba(15,22,35,.86)); }
-    .toast { border: 1px solid rgba(101,230,173,.35); box-shadow: 0 14px 35px rgba(0,0,0,.25); }
-
-    @media (max-width: 700px) {
-      header { margin-top: .75rem; padding: 1rem; }
-      .brand-title { align-items: flex-start; flex-wrap: wrap; gap: .55rem; }
-      .brand-title span { width: 100%; margin-left: 2.7rem; }
-      .metric { min-height: 6.2rem; }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,450&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/lab.css">
 </head>
 <body>
 
-  <div class="container">
-    <!-- Header -->
-    <header>
+  <div id="login-view" class="login" hidden>
+    <section class="login-story">
       <div>
-        <h1 class="brand-title">
-          Won'tBuy <span style="font-weight: 300; font-size: 1.1rem; opacity: 0.75;">· Agentic Marketing Lab</span>
-        </h1>
-        <p class="brand-subtitle">
-          Click the three steps below to see why B2B campaigns fail: first wrong people see it, then right people see it but copy is weak, and finally copywriting fixes convert buyers.
-        </p>
+        <div class="login-mark">Won'tBuy · lab</div>
+        <h1>See who <em>won't</em> buy — before you spend.</h1>
+        <p class="lead">Run the campaign on simulated buyers. Two failures, then a fix: wrong eyes, then wrong words.</p>
+        <ol class="login-beats">
+          <li><span class="beat-n">01</span><span><b>Leak.</b> The wrong audience clicks. Intended buyers refuse.</span></li>
+          <li><span class="beat-n">02</span><span><b>Freeze copy.</b> Tighten targeting. Same words, same refusals.</span></li>
+          <li><span class="beat-n">03</span><span><b>Fix words.</b> Price, proof, the CTA the offer actually needs.</span></li>
+        </ol>
       </div>
-      <div class="status-badges">
-        <span id="badge-mode" class="badge cached">Cached</span>
-        <span class="badge simulated">Simulated — not live ads</span>
+      <p class="login-note">Simulated impressions. Not live ads. No password stored on a server.</p>
+    </section>
+    <section class="login-panel">
+      <form id="login-form" class="login-card">
+        <h2>Enter the lab</h2>
+        <p class="sub">Local session only — name and email stay in this browser. Not Meta or Google OAuth.</p>
+        <div class="field">
+          <label for="login-name">Name</label>
+          <input id="login-name" name="name" autocomplete="name" required placeholder="Ada">
+        </div>
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input id="login-email" name="email" type="email" autocomplete="email" required placeholder="ada@lab.local">
+        </div>
+        <button type="submit" class="btn-primary" id="login-submit">Enter lab</button>
+        <button type="button" class="btn-ghost" id="login-judge">Continue as judge</button>
+        <p class="login-note">Judges can skip the form. Sign out anytime from the rail.</p>
+      </form>
+    </section>
+  </div>
+
+
+  <div id="lab-view" class="app" hidden>
+    <aside class="rail">
+      <div class="rail-brand">
+        <h1>Won'tBuy</h1>
+        <span>lab</span>
       </div>
-    </header>
+      <div class="account-chip">
+        <b id="account-name">—</b>
+        <button type="button" id="sign-out">Sign out</button>
+      </div>
+      <div class="rail-kicker">Steps</div>
 
     <!-- Three Big Steps in a Row -->
     <div class="steps-row">
@@ -1320,29 +73,38 @@
       </button>
     </div>
 
-    <!-- Next Step Hint Line -->
-    <div id="step-hint" class="hint-line">Next step: Tighten targeting to stop paying for Jules.</div>
+      <div class="rail-actions">
+        <button type="button" id="play-all-btn" class="export-btn">Play all three steps</button>
+        <button type="button" id="export-btn" class="export-btn">Export campaign.md</button>
+        <button type="button" id="open-brief-btn" class="export-btn">Custom brief</button>
+      </div>
 
-    <section class="agent-room" id="agent-room">
-      <h3 class="section-title">Agent room</h3>
-      <p id="agent-tag" class="agent-tag">Four jobs. Nobody fixes targeting and copy at once.</p>
-      <div id="agent-bubbles" class="agent-bubbles"></div>
-    </section>
-
-    <!-- Export Action -->
-    <div class="export-container">
-      <button type="button" id="play-all-btn" class="export-btn">Play all three steps</button>
-      <button type="button" id="export-btn" class="export-btn">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
-        </svg>
-        Export campaign.md
-      </button>
-    </div>
-
+    <details id="details-numbers">
+      <summary>
+        <span>Paste last campaign numbers</span>
+        <span style="font-size: 0.8rem; color: var(--muted);">Simulator stays; waste uses your spend</span>
+      </summary>
+      <div class="details-content">
+        <form id="numbers-form" class="brief-form">
+          <label for="num-spend">Spend</label>
+          <input id="num-spend" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 1200">
+          <label for="num-impr">Impressions</label>
+          <input id="num-impr" class="brief-textarea" style="min-height:0;" type="number" min="1" step="1" placeholder="e.g. 8000">
+          <label for="num-cpc">Or CPC / cost per impression</label>
+          <input id="num-cpc" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 0.10">
+          <label for="num-csv">Or CSV (spend, impressions, cpc columns)</label>
+          <textarea id="num-csv" class="brief-textarea" placeholder="spend,impressions&#10;1200,8000"></textarea>
+          <div class="brief-actions">
+            <button type="submit" id="numbers-submit-btn" class="cta-button" style="width:auto;">Apply numbers</button>
+          </div>
+          <div id="numbers-status" class="brief-sample"></div>
+        </form>
+      </div>
+    </details>
+      <div class="rail-kicker">Connect later</div>
     <section class="integrations-panel" id="integrations-panel">
       <div class="integrations-kicker">Optional · connect later</div>
-      <p class="integrations-lead">The lab is a simulator today. These hooks are the product path — live ads, a fourth round, dashboards, and team login — without blocking the three-step diagnosis.</p>
+      <p class="integrations-lead">The lab is a simulator today. Campaign health is on this page. These hooks are the rest of the path — live ads, a fourth round, extra agents — without blocking the three-step diagnosis.</p>
       <div class="integ-grid">
         <button type="button" class="integ-btn" id="integ-meta" data-integ="meta">
           Meta Ads
@@ -1360,9 +122,9 @@
           Team login / share
           <span class="integ-soon">Link works now</span>
         </button>
-        <button type="button" class="integ-btn" id="integ-dashboard" data-integ="dashboard">
+        <button type="button" class="integ-btn wired" id="integ-dashboard" data-integ="dashboard">
           Dashboard
-          <span class="integ-soon">Hook ready</span>
+          <span class="integ-soon">On this page</span>
         </button>
         <button type="button" class="integ-btn" id="integ-agents" data-integ="agents">
           Extra agents
@@ -1379,12 +141,107 @@
       </div>
     </section>
 
-    <!-- Story Banner (Spinner placeholder inside) -->
-    <div id="story-banner" class="story-banner r1">
-      <div id="story-content" class="story-text">
-        Wrong People + Wrong Words: A student enthusiastically clicks your B2B factory ad (wasted spend), while three actual plant managers refuse because the page has no pricing and claims to be #1 without proof. Two failures, same campaign.
+    </aside>
+    <div class="workspace">
+    <!-- Header -->
+    <header>
+      <div>
+        <h1 class="brand-title">
+          Won'tBuy <span style="font-weight: 300; font-size: 1.1rem; opacity: 0.75;">· Agentic Marketing Lab</span>
+        </h1>
+        <p class="brand-subtitle">
+          Three steps: find the leak, freeze the words, then fix the copy. Simulated buyers — not live ads.
+        </p>
       </div>
-    </div>
+      <div class="status-badges">
+        <span id="badge-mode" class="badge cached">Cached</span>
+        <span class="badge simulated">Simulated — not live ads</span>
+      </div>
+    </header>
+
+    <section class="brief-panel" aria-labelledby="custom-brief-title">
+      <details id="details-custom" open>
+        <summary>
+          <span id="custom-brief-title">Custom brief</span>
+          <span>Paste brand, who should buy it, and a price. A live key names the buyers and the leak, then the lab runs step 1.</span>
+        </summary>
+        <div class="details-content">
+          <form id="brief-form" class="brief-form">
+            <textarea id="brief-input" class="brief-textarea" placeholder="Brand, who should buy it, a price. Optional: Buyer: … Leak: …  Example: Nimbus: log search. From $80/mo. Buyer: cloud ops managers at banks. Leak: solo indie hackers."></textarea>
+            <div class="brief-actions">
+              <button type="submit" id="custom-submit-btn" class="cta-button" style="width: auto;">Run as step 1, then use steps 2 and 3</button>
+            </div>
+            <div id="brief-error" class="brief-error"></div>
+            <div id="brief-sample" class="brief-sample"></div>
+          </form>
+        </div>
+      </details>
+    </section>
+
+    <section id="marketing-dashboard" class="marketing-dashboard" aria-labelledby="marketing-dashboard-title">
+      <div class="dashboard-heading">
+        <div>
+          <div class="section-kicker">Marketing dashboard</div>
+          <h2 id="marketing-dashboard-title">Campaign health at a glance</h2>
+          <p id="dashboard-summary">Run a round to see where your budget is going and what to fix next.</p>
+        </div>
+        <div class="dashboard-period">Simulated</div>
+      </div>
+      <div class="dashboard-metrics">
+        <article class="dashboard-metric dashboard-metric-score">
+          <span class="dashboard-label">Campaign score</span>
+          <strong id="dashboard-score">—</strong>
+          <span id="dashboard-score-note">Waiting for results</span>
+        </article>
+        <article class="dashboard-metric">
+          <span class="dashboard-label">Audience quality</span>
+          <strong id="dashboard-accuracy">—</strong>
+          <span>in-target impressions</span>
+        </article>
+        <article class="dashboard-metric">
+          <span class="dashboard-label">Buyer conversion</span>
+          <strong id="dashboard-purchase">—</strong>
+          <span>ICP buyers willing to click</span>
+        </article>
+        <article class="dashboard-metric dashboard-metric-waste">
+          <span class="dashboard-label">Wasted spend</span>
+          <strong id="dashboard-waste">—</strong>
+          <span id="dashboard-waste-note">off-ICP budget</span>
+        </article>
+      </div>
+      <div class="dashboard-lower">
+        <div class="dashboard-funnel">
+          <div class="dashboard-subheading">
+            <span>Funnel</span>
+            <span id="dashboard-funnel-status">Not run</span>
+          </div>
+          <div class="funnel-track">
+            <div class="funnel-stage">
+              <span class="funnel-value" id="funnel-reach">—</span>
+              <span>Reached</span>
+            </div>
+            <div class="funnel-arrow" aria-hidden="true">→</div>
+            <div class="funnel-stage">
+              <span class="funnel-value" id="funnel-engaged">—</span>
+              <span>Would click</span>
+            </div>
+            <div class="funnel-arrow" aria-hidden="true">→</div>
+            <div class="funnel-stage">
+              <span class="funnel-value" id="funnel-buyers">—</span>
+              <span>ICP buyers</span>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-next-step">
+          <div class="dashboard-subheading">Recommended next move</div>
+          <strong id="dashboard-next-title">Run the first round</strong>
+          <p id="dashboard-next-copy">Let the lab diagnose your audience before you change the creative.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Next Step Hint Line -->
+    <div id="step-hint" class="hint-line">Next step: Tighten targeting to stop paying for Jules.</div>
 
     <!-- Metrics Row -->
     <div class="metrics-grid">
@@ -1405,6 +262,13 @@
       </div>
     </div>
 
+    <!-- Story Banner (Spinner placeholder inside) -->
+    <div id="story-banner" class="story-banner r1">
+      <div id="story-content" class="story-text">
+        Wrong People + Wrong Words: A student enthusiastically clicks your B2B factory ad (wasted spend), while three actual plant managers refuse because the page has no pricing and claims to be #1 without proof. Two failures, same campaign.
+      </div>
+    </div>
+
     <section id="compare-panel" class="compare-panel">
       <h3 class="section-title">Two failures, two fixes</h3>
       <p id="compare-empty" class="compare-empty">Run step 2 (targeting) then step 3 (copy) to see the side-by-side.</p>
@@ -1422,6 +286,25 @@
       </div>
     </section>
 
+    <section class="agent-room" id="agent-room">
+      <div class="agent-head">
+        <div>
+          <h3 class="section-title">Agent room</h3>
+          <p id="agent-tag" class="agent-tag">Watch Sampler, Optimizer, shoppers, and Critic take turns. Metrics move when they do.</p>
+        </div>
+        <span id="war-now" class="war-now" hidden>Idle</span>
+      </div>
+      <ol class="war-pipeline" id="war-pipeline" aria-label="Agent order">
+        <li data-node="brief">Brief</li>
+        <li data-node="optimizer">Optimizer</li>
+        <li data-node="sampler">Sampler</li>
+        <li data-node="shoppers">Shoppers</li>
+        <li data-node="critic">Critic</li>
+      </ol>
+      <div id="agent-bubbles" class="agent-bubbles"></div>
+    </section>
+
+    <div>
     <!-- People Row -->
     <div>
       <div id="people-kicker" class="people-kicker">Wrong eyes · Wrong words</div>
@@ -1431,7 +314,7 @@
         <!-- Rendered dynamically -->
       </div>
     </div>
-
+    </div>
     <!-- Ad & Landing Previews -->
     <div class="previews-grid">
       <!-- Sponsored Ad -->
@@ -1509,46 +392,7 @@
       </div>
     </details>
 
-    <!-- Custom Brief collapsed details -->
-    <details id="details-custom">
-      <summary>
-        <span>Custom brief</span>
-        <span style="font-size: 0.8rem; color: var(--muted);">Same three steps: leak → targeting → copy</span>
-      </summary>
-      <div class="details-content">
-        <form id="brief-form" class="brief-form">
-          <textarea id="brief-input" class="brief-textarea" placeholder="Brand, who should buy it, a price. Optional: Buyer: … Leak: …  Example: Nimbus: log search. From $80/mo. Buyer: cloud ops managers at banks. Leak: solo indie hackers."></textarea>
-          <div class="brief-actions">
-            <button type="submit" id="custom-submit-btn" class="cta-button" style="width: auto;">Run as step 1, then use steps 2 and 3</button>
-          </div>
-          <div id="brief-error" class="brief-error"></div>
-          <div id="brief-sample" class="brief-sample"></div>
-        </form>
-      </div>
-    </details>
-
-    <details id="details-numbers">
-      <summary>
-        <span>Paste last campaign numbers</span>
-        <span style="font-size: 0.8rem; color: var(--muted);">Simulator stays; waste uses your spend</span>
-      </summary>
-      <div class="details-content">
-        <form id="numbers-form" class="brief-form">
-          <label for="num-spend">Spend</label>
-          <input id="num-spend" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 1200">
-          <label for="num-impr">Impressions</label>
-          <input id="num-impr" class="brief-textarea" style="min-height:0;" type="number" min="1" step="1" placeholder="e.g. 8000">
-          <label for="num-cpc">Or CPC / cost per impression</label>
-          <input id="num-cpc" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 0.10">
-          <label for="num-csv">Or CSV (spend, impressions, cpc columns)</label>
-          <textarea id="num-csv" class="brief-textarea" placeholder="spend,impressions&#10;1200,8000"></textarea>
-          <div class="brief-actions">
-            <button type="submit" id="numbers-submit-btn" class="cta-button" style="width:auto;">Apply numbers</button>
-          </div>
-          <div id="numbers-status" class="brief-sample"></div>
-        </form>
-      </div>
-    </details>
+    </div>
   </div>
 
   <div id="integ-modal-backdrop" class="integ-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="integ-modal-title">
@@ -1576,7 +420,9 @@
       completed: { 1: false, 2: false, 3: false },
       labId: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('lab-' + Date.now()),
       rounds: {},
-      economics: null
+      economics: null,
+      lab: 'northline',
+      briefing: null
     };
 
     const narratives = {
@@ -1787,6 +633,280 @@
       }
     }
 
+    function spendSymbol(data) {
+      const blob = [
+        data && data.briefing && data.briefing.price,
+        data && data.campaign && data.campaign.page && data.campaign.page.price,
+        data && data.campaign && data.campaign.ad && data.campaign.ad.body
+      ].filter(Boolean).join(' ');
+      if (blob.indexOf('$') !== -1) return '$';
+      if (blob.indexOf('£') !== -1) return '£';
+      if (blob.indexOf('₹') !== -1) return '₹';
+      return '€';
+    }
+
+    function leakName(data) {
+      const leak = (data.personas || []).find((p) => p.is_icp === false);
+      return (leak && leak.name) || 'the leak';
+    }
+
+    const WAR_COPY = {
+      brief: 'Brief is naming who should buy — and who is wasted spend.',
+      optimizer: 'Optimizer is acting. Step 1 freezes copy. Step 2 cuts the leak. Step 3 rewrites — watch the ad.',
+      sampler: 'Sampler is buying 80 simulated impressions. Watch audience quality and waste.',
+      shoppers: 'Shoppers are answering would-click. Conversion should move here.',
+      critic: 'Critic is scoring the round.'
+    };
+
+    function wait(ms) {
+      return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    function pulseText(id, text) {
+      const el = document.getElementById(id);
+      if (!el || text == null) return;
+      const next = String(text);
+      if (el.textContent === next) return;
+      el.textContent = next;
+      el.classList.remove('tick');
+      void el.offsetWidth;
+      el.classList.add('tick');
+    }
+
+    function setWarNow(node, retry) {
+      const now = document.getElementById('war-now');
+      const tag = document.getElementById('agent-tag');
+      const room = document.getElementById('agent-room');
+      const label = node ? (retry ? (node + ' · retry') : node) : 'Idle';
+      if (now) {
+        now.hidden = !node;
+        now.textContent = node ? ('Now · ' + label) : 'Idle';
+      }
+      if (tag && node) tag.textContent = WAR_COPY[node] || ('Running · ' + node);
+      if (room) room.classList.toggle('live', Boolean(node));
+      document.querySelectorAll('#war-pipeline li').forEach((li) => {
+        const name = li.getAttribute('data-node');
+        li.classList.remove('on', 'done');
+        if (!node) return;
+        const order = ['brief', 'optimizer', 'sampler', 'shoppers', 'critic'];
+        const here = order.indexOf(name);
+        const live = order.indexOf(node);
+        if (name === node) li.classList.add('on');
+        else if (here >= 0 && live >= 0 && here < live) li.classList.add('done');
+      });
+    }
+
+    function renderAgentTurns(turns) {
+      const bubbles = document.getElementById('agent-bubbles');
+      if (!bubbles) return;
+      bubbles.innerHTML = '';
+      (turns || []).forEach((turn, index, all) => {
+        const div = document.createElement('div');
+        div.className = 'bubble' + (index === all.length - 1 ? ' newest' : '');
+        const who = document.createElement('div');
+        who.className = 'who';
+        who.textContent = turn.role === 'Persona'
+          ? ('Shopper · ' + turn.name)
+          : (turn.role || turn.name || 'Agent');
+        const said = document.createElement('div');
+        said.className = 'said';
+        said.textContent = turn.text;
+        div.appendChild(who);
+        div.appendChild(said);
+        bubbles.appendChild(div);
+      });
+      bubbles.scrollTop = bubbles.scrollHeight;
+    }
+
+    function paintPeople(personas, round) {
+      const peopleContainer = document.getElementById('people-container');
+      if (!peopleContainer) return;
+      peopleContainer.innerHTML = (personas || []).map((p) => renderPersonCard(p, round)).join('');
+    }
+
+    function paintCreative(c) {
+      if (!c || !c.ad) return;
+      const headline = document.getElementById('ad-headline');
+      const desc = document.getElementById('ad-desc');
+      const adCta = document.getElementById('ad-cta');
+      if (headline) headline.textContent = c.ad.headline;
+      if (desc) desc.textContent = c.ad.body;
+      if (adCta) {
+        adCta.textContent = c.ad.cta;
+        adCta.className = c.ad.cta === 'Learn more' ? 'cta-button neutral' : 'cta-button';
+      }
+      const pageH = document.getElementById('page-headline');
+      if (pageH && c.page) pageH.textContent = c.page.headline;
+      const pageCta = document.getElementById('page-cta');
+      if (pageCta && c.page) {
+        pageCta.textContent = c.page.cta;
+        pageCta.className = c.page.cta === 'Learn more' ? 'cta-button neutral' : 'cta-button';
+      }
+      const priceEl = document.getElementById('page-price');
+      if (priceEl && c.page) {
+        if (c.page.price) {
+          priceEl.textContent = c.page.price;
+          priceEl.className = 'landing-price';
+        } else {
+          priceEl.textContent = 'Price not shown';
+          priceEl.className = 'landing-price missing';
+        }
+      }
+      const companyName = c.company || 'Campaign';
+      const liCompany = document.getElementById('li-company');
+      const avatar = document.getElementById('li-avatar');
+      if (liCompany) liCompany.textContent = companyName;
+      if (avatar) avatar.textContent = companyName.charAt(0).toUpperCase();
+    }
+
+    function beginWar(roundNumber) {
+      const room = document.getElementById('agent-room');
+      if (room) {
+        room.classList.add('live');
+        room.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      const bubbles = document.getElementById('agent-bubbles');
+      if (bubbles) bubbles.innerHTML = '';
+      setWarNow(null);
+      const story = document.getElementById('story-content');
+      if (story) {
+        story.innerHTML = '<div class="loading-container"><span class="spinner-inner"></span><span>Step ' + roundNumber + ' — agents are in the room. Metrics will move as they finish their turn.</span></div>';
+      }
+    }
+
+    function endWar() {
+      setWarNow(null);
+      const room = document.getElementById('agent-room');
+      if (room) room.classList.remove('live');
+      document.querySelectorAll('#war-pipeline li').forEach((li) => {
+        li.classList.remove('on');
+        li.classList.add('done');
+      });
+    }
+
+    async function applyLiveNode(chunk, roundNumber) {
+      const node = chunk.node || 'graph';
+      setWarNow(node, chunk.retry);
+      const liveTurn = (chunk.turns || []).some((t) => t.live_or_cache === 'live');
+      const pace = liveTurn ? 70 : 380;
+      if (chunk.targeting_accuracy != null) {
+        pulseText('metric-accuracy', Math.round(Number(chunk.targeting_accuracy)) + '%');
+      }
+      if (chunk.icp_purchase_rate) pulseText('metric-purchase', chunk.icp_purchase_rate);
+      if (chunk.waste) {
+        const symbol = spendSymbol({ campaign: chunk.campaign, waste: chunk.waste, briefing: state.briefing });
+        pulseText('metric-waste', symbol + Number(chunk.waste.wasted_spend || 0).toFixed(2));
+        pulseText('dashboard-waste', symbol + Number(chunk.waste.wasted_spend || 0).toFixed(2));
+      }
+      if (chunk.campaign) paintCreative(chunk.campaign);
+      const partial = {
+        round: roundNumber,
+        lab: state.lab || 'northline',
+        briefing: state.briefing,
+        campaign: chunk.campaign,
+        targeting_accuracy: chunk.targeting_accuracy,
+        waste: chunk.waste,
+        personas: chunk.personas,
+        icp_purchase_rate: chunk.icp_purchase_rate
+      };
+      if (chunk.targeting_accuracy != null || chunk.personas) {
+        renderMarketingDashboard(partial);
+      }
+      if (node === 'shoppers' && chunk.personas && chunk.personas.length) {
+        const people = chunk.personas;
+        const personaTurns = (chunk.turns || []).filter((t) => t.role === 'Persona');
+        const prefix = (chunk.turns || []).filter((t) => t.role !== 'Persona');
+        for (let i = 0; i < people.length; i++) {
+          renderAgentTurns(prefix.concat(personaTurns.slice(0, i + 1)));
+          paintPeople(people.slice(0, i + 1), roundNumber);
+          await wait(liveTurn ? 80 : 300);
+        }
+      } else {
+        renderAgentTurns(chunk.turns);
+        if (chunk.personas) paintPeople(chunk.personas, roundNumber);
+        await wait(pace);
+      }
+    }
+
+    function renderMarketingDashboard(data) {
+      const accuracy = Number(data.targeting_accuracy || 0);
+      const purchase = String(data.icp_purchase_rate || '0/3');
+      const [buyers, possible] = purchase.split('/').map(Number);
+      const waste = data.waste || {};
+      const score = Math.round((accuracy * 0.55) + ((possible ? buyers / possible : 0) * 45));
+      const reached = (data.personas || []).filter((p) => p.reached).length;
+      const engaged = (data.personas || []).filter((p) => p.reached && p.would_click).length;
+      const scoreEl = document.getElementById('dashboard-score');
+      const scoreNote = document.getElementById('dashboard-score-note');
+      if (scoreEl) scoreEl.textContent = `${score}/100`;
+      if (scoreNote) scoreNote.textContent = score >= 80 ? 'Passing this lab' : score >= 55 ? 'Needs the next step' : 'Leaky campaign';
+      const accuracyEl = document.getElementById('dashboard-accuracy');
+      const purchaseEl = document.getElementById('dashboard-purchase');
+      const wasteEl = document.getElementById('dashboard-waste');
+      if (accuracyEl) accuracyEl.textContent = `${Math.round(accuracy)}%`;
+      if (purchaseEl) purchaseEl.textContent = purchase;
+      const symbol = spendSymbol(data);
+      if (wasteEl) wasteEl.textContent = symbol + Number(waste.wasted_spend || 0).toFixed(2);
+      const briefing = data.briefing || {};
+      const company = (data.campaign && data.campaign.company) || briefing.company || 'Your campaign';
+      const summary = document.getElementById('dashboard-summary');
+      if (summary) {
+        const how = briefing.interpreted_by === 'llm'
+          ? ' (brief read by the model)'
+          : (data.lab === 'custom' ? ' (brief parsed from your text)' : '');
+        summary.textContent = company + ' is at ' + score + '/100 after Round ' + (data.round || 1) + how + '.';
+      }
+      const period = document.querySelector('.dashboard-period');
+      if (period) {
+        period.textContent = data.lab === 'custom'
+          ? (briefing.interpreted_by === 'llm' ? 'Your brief · live' : 'Your brief')
+          : 'Simulated';
+      }
+      const funnel = {
+        reach: reached,
+        engaged,
+        buyers: Number.isFinite(buyers) ? buyers : 0,
+      };
+      ['reach', 'engaged', 'buyers'].forEach((key) => {
+        const el = document.getElementById('funnel-' + key);
+        if (!el) return;
+        el.textContent = key === 'buyers' ? (funnel.buyers + '/' + (possible || 3)) : String(funnel[key]);
+      });
+      const wasteNote = document.getElementById('dashboard-waste-note');
+      if (wasteNote) {
+        const share = waste.waste_share != null ? waste.waste_share : null;
+        wasteNote.textContent = share != null
+          ? (share + '% of spend on off-ICP impressions')
+          : 'off-ICP budget';
+      }
+      const status = document.getElementById('dashboard-funnel-status');
+      if (status) {
+        const audience = (data.briefing && data.briefing.audience) || '';
+        status.textContent = audience
+          ? ((data.personas || []).length + ' shoppers · ' + audience)
+          : ((data.personas || []).length + ' simulated shoppers');
+      }
+      const nextTitle = document.getElementById('dashboard-next-title');
+      const nextCopy = document.getElementById('dashboard-next-copy');
+      if (nextTitle && nextCopy) {
+        const leak = leakName(data);
+        const audience = (data.briefing && data.briefing.audience) || 'the people who can buy';
+        if ((data.round || 1) === 1) {
+          nextTitle.textContent = 'Tighten your audience';
+          nextCopy.textContent = 'Stop paying for ' + leak + '. Run Step 2 so the ad only reaches ' + audience + '.';
+        } else if ((data.round || 1) === 2) {
+          nextTitle.textContent = 'Fix the conversion story';
+          nextCopy.textContent = leak + ' is out. Same words still fail — run Step 3 to give ' + audience + ' a reason to click.';
+        } else {
+          const cta = (data.briefing && data.briefing.cta) || (data.campaign && data.campaign.ad && data.campaign.ad.cta) || 'the CTA';
+          nextTitle.textContent = score >= 80 ? 'Export the write-up' : 'Review the rewrite';
+          nextCopy.textContent = score >= 80
+            ? ('Targeting and copy both pass this lab. CTA is “' + cta + '”. Export campaign.md — ads stay simulated.')
+            : 'Review the agent recommendations before you treat this as a pass.';
+        }
+      }
+    }
+
     function render(data) {
       const r = data.round || 0;
       const c = data.campaign;
@@ -1822,7 +942,7 @@
       const waste = data.waste || {};
       const wasteEl = document.getElementById('metric-waste');
       const wasteText = document.getElementById('metric-waste-text');
-      const symbol = '€';
+      const symbol = spendSymbol(data);
       if (wasteEl) {
         const amount = Number(waste.wasted_spend || 0).toFixed(2);
         wasteEl.textContent = symbol + amount;
@@ -1841,6 +961,9 @@
           wasteText.textContent = `Round ${r} spent it on the right ${onShare}% (${off} off-ICP of ${waste.impressions || 80}).`;
         }
       }
+
+      renderMarketingDashboard(data);
+      renderAgentTimeline(data.agent_turns || [], true);
 
       if (data.round) {
         state.rounds[data.round] = data;
@@ -2058,7 +1181,7 @@
         for (const line of lines) {
           if (!line.trim()) continue;
           const chunk = JSON.parse(line);
-          if (chunk.type === 'node' && onNode) onNode(chunk);
+          if (chunk.type === 'node' && onNode) await onNode(chunk);
           if (chunk.type === 'final') finalPayload = chunk;
         }
       }
@@ -2070,29 +1193,13 @@
         const streamed = await fetch(`/api/round/${roundNumber}/stream`, { headers: labHeaders() });
         if (streamed.ok && streamed.body) {
           const finalPayload = await readNdjson(streamed, (chunk) => {
-            if (!chunk.turns || !chunk.turns.length) return;
-            const bubbles = document.getElementById('agent-bubbles');
-            const tag = document.getElementById('agent-tag');
-            if (tag) tag.textContent = 'Streaming · ' + (chunk.node || 'graph');
-            if (!bubbles) return;
-            bubbles.innerHTML = '';
-            chunk.turns.forEach((turn) => {
-              const div = document.createElement('div');
-              div.className = 'bubble';
-              const who = document.createElement('div');
-              who.className = 'who';
-              who.textContent = turn.role === 'Persona'
-                ? ('Shopper · ' + turn.name)
-                : (turn.role || chunk.node || 'Agent');
-              const said = document.createElement('div');
-              said.className = 'said';
-              said.textContent = turn.text;
-              div.appendChild(who);
-              div.appendChild(said);
-              bubbles.appendChild(div);
-            });
+            applyLiveNode(chunk, roundNumber);
+            renderAgentTimeline(chunk.turns || [], false);
           });
-          if (finalPayload) return finalPayload;
+          if (finalPayload) {
+            render(finalPayload);
+            return finalPayload;
+          }
         }
       } catch (err) {
         /* fall through to JSON */
@@ -2102,38 +1209,38 @@
       return res.json();
     }
 
-    async function triggerLoadRound(roundNumber) {
-      if (state.loading) return;
-      state.loading = true;
-      
+    function lockSteps(on) {
       for (let i = 1; i <= 3; i++) {
-        document.getElementById(`step-${i}`).disabled = true;
+        const btn = document.getElementById('step-' + i);
+        if (btn) btn.disabled = on;
       }
-      document.getElementById('custom-submit-btn').disabled = true;
+      const custom = document.getElementById('custom-submit-btn');
+      if (custom) custom.disabled = on;
       const playBtn = document.getElementById('play-all-btn');
-      if (playBtn) playBtn.disabled = true;
+      if (playBtn) playBtn.disabled = on;
+    }
 
-      document.getElementById('story-content').innerHTML = `
-        <div class="loading-container">
-          <span class="spinner-inner"></span>
-          <span>Agents compiling metrics for Round ${roundNumber}...</span>
-        </div>
-      `;
+    async function triggerLoadRound(roundNumber, opts) {
+      opts = opts || {};
+      if (state.loading && !opts.continue) return;
+      state.loading = true;
+      lockSteps(true);
+      beginWar(roundNumber);
 
       try {
         const data = await fetchRound(roundNumber);
         state.currentRound = roundNumber;
+        state.lab = data.lab || state.lab;
+        if (data.briefing) state.briefing = data.briefing;
         render(data);
         updateStepButtons();
+        endWar();
       } catch (err) {
-        document.getElementById('story-content').textContent = `Failed to load metrics for Round ${roundNumber}. Please retry.`;
+        document.getElementById('story-content').textContent = 'Failed to load metrics for Round ' + roundNumber + '. Please retry.';
+        endWar();
       } finally {
         state.loading = false;
-        for (let i = 1; i <= 3; i++) {
-          document.getElementById(`step-${i}`).disabled = false;
-        }
-        document.getElementById('custom-submit-btn').disabled = false;
-        if (playBtn) playBtn.disabled = false;
+        lockSteps(false);
       }
     }
 
@@ -2176,11 +1283,19 @@
       }
 
       state.loading = true;
+      lockSteps(true);
       setBriefReasoning(true);
+      setWarNow('brief');
+      const room = document.getElementById('agent-room');
+      if (room) {
+        room.classList.add('live');
+        room.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      renderAgentTurns([{ role: 'Brief', name: 'Brief', text: 'Reading the product, who should buy it, and who is a wasted click…' }]);
       document.getElementById('story-content').innerHTML = `
         <div class="loading-container">
           <span class="spinner-inner"></span>
-          <span>Reasoning about audience — then running step 1…</span>
+          <span>Brief is reasoning — then Sampler, Optimizer, shoppers, Critic take the room.</span>
         </div>
       `;
 
@@ -2197,21 +1312,38 @@
             sampleBox.textContent = 'Sample: ' + data.sample;
           }
           document.getElementById('story-content').textContent = 'Custom campaign execution failed.';
+          endWar();
           return;
         }
+        state.lab = 'custom';
+        state.briefing = {
+          company: data.company,
+          price: data.price,
+          audience: data.audience,
+          cta: data.cta,
+          reasoning: data.reasoning,
+          interpreted_by: data.interpreted_by
+        };
+        if (data.reasoning) {
+          renderAgentTurns([{ role: 'Brief', name: 'Brief', text: data.reasoning, live_or_cache: data.interpreted_by === 'llm' ? 'live' : 'cache' }]);
+        }
+        setBriefReasoning(false);
         state.currentRound = 1;
-        state.completed = { 1: true, 2: false, 3: false };
+        state.completed = { 1: false, 2: false, 3: false };
         state.rounds = {};
-        render(data);
-        updateStepButtons();
+        state.loading = false;
+        await triggerLoadRound(1, { continue: true });
         sampleBox.textContent = 'This is step 1 of your brief. Click Step 2 (right eyes, same words), then Step 3 (right words). Refresh to return to Northline.';
         showToast('Step 1 ready — now use steps 2 and 3.');
+        return;
       } catch (err) {
         errBox.textContent = 'Request failed. Make sure the server is up.';
         document.getElementById('story-content').textContent = 'Custom campaign execution failed.';
+        endWar();
       } finally {
         state.loading = false;
         setBriefReasoning(false);
+        lockSteps(false);
       }
     });
 
@@ -2228,6 +1360,35 @@
         await triggerLoadRound(state.currentRound);
       }
       return data.economics;
+    }
+
+    function renderAgentTimeline(turns, complete = false) {
+      const room = document.querySelector('.agent-room');
+      if (!room) return;
+      let timeline = document.getElementById('agent-timeline');
+      if (!timeline) {
+        timeline = document.createElement('div');
+        timeline.id = 'agent-timeline';
+        timeline.className = 'agent-timeline';
+        timeline.setAttribute('aria-live', 'polite');
+        room.appendChild(timeline);
+      }
+      const latestByNode = new Map();
+      (turns || []).forEach((turn) => latestByNode.set(turn.node || turn.role || turn.name, turn));
+      const order = ['brief', 'optimizer', 'sampler', 'shoppers', 'critic'];
+      const labels = { brief: 'Brief', optimizer: 'Optimizer', sampler: 'Sampler', shoppers: 'Buyer panel', critic: 'Critic' };
+      const completed = new Set(latestByNode.keys());
+      timeline.innerHTML = order.map((node) => {
+        const turn = latestByNode.get(node);
+        const state = completed.has(node) ? 'complete' : 'waiting';
+        const copy = turn ? esc(turn.text || '') : (complete ? 'No update from this step.' : 'Waiting to take the next turn…');
+        const meta = turn ? `${esc(turn.live_or_cache || 'live')} · ${Number(turn.latency_ms || 0)}ms` : 'queued';
+        return `<article class="agent-timeline-row ${state}">
+          <span class="agent-timeline-dot" aria-hidden="true"></span>
+          <div class="agent-timeline-copy"><strong>${labels[node]}</strong><p>${copy}</p></div>
+          <span class="agent-timeline-meta">${meta}</span>
+        </article>`;
+      }).join('');
     }
 
     function optNum(id) {
@@ -2262,6 +1423,19 @@
       showToast('All three steps played.');
     });
 
+    const openBriefBtn = document.getElementById('open-brief-btn');
+    if (openBriefBtn) {
+      openBriefBtn.addEventListener('click', () => {
+        const el = document.getElementById('details-custom');
+        if (el) {
+          el.open = true;
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        const input = document.getElementById('brief-input');
+        if (input) input.focus();
+      });
+    }
+
     const INTEGRATIONS = {
       meta: {
         title: 'Meta Ads',
@@ -2280,13 +1454,13 @@
       },
       share: {
         title: 'Team login / share',
-        body: 'No accounts yet. Anyone with this lab link can reopen the same brief (after you run a custom campaign). That is the share path until login exists.',
+        body: 'This browser holds the session (name + email locally). Anyone with the lab link can reopen the same brief after a custom run. OAuth team accounts are still a hook.',
         share: true
       },
       dashboard: {
         title: 'Dashboard',
-        body: 'A metrics dashboard is a hook, not a second product. The three-step score (accuracy, 0/3→3/3, waste) is the dashboard today. A future view would chart those same fields across saved labs — not vanity charts.',
-        paste: false
+        body: 'Campaign score, audience quality, conversion, waste, and the next move sit at the top of the lab. A future view would chart those same fields across saved labs.',
+        scroll: 'marketing-dashboard'
       },
       agents: {
         title: 'Extra agents',
@@ -2314,6 +1488,15 @@
     function openIntegModal(id) {
       const spec = INTEGRATIONS[id];
       if (!spec) return;
+      if (spec.scroll) {
+        const target = document.getElementById(spec.scroll);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          target.classList.add('dashboard-flash');
+          window.setTimeout(() => target.classList.remove('dashboard-flash'), 1400);
+        }
+        return;
+      }
       const backdrop = document.getElementById('integ-modal-backdrop');
       const title = document.getElementById('integ-modal-title');
       const body = document.getElementById('integ-modal-body');
@@ -2385,8 +1568,47 @@
       if (ev.target.id === 'integ-modal-backdrop') closeIntegModal();
     });
 
-    // Initial load
-    async function boot() {
+    const SESSION_KEY = 'wontbuy.session';
+
+    function readSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }
+      catch (e) { return null; }
+    }
+
+    function showLogin() {
+      document.getElementById('login-view').hidden = false;
+      document.getElementById('lab-view').hidden = true;
+    }
+
+    function showLab(session) {
+      document.getElementById('login-view').hidden = true;
+      document.getElementById('lab-view').hidden = false;
+      const nameEl = document.getElementById('account-name');
+      if (nameEl) nameEl.textContent = (session && session.name) || 'Lab';
+    }
+
+    function enterLab(session) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      showLab(session);
+      bootLab();
+    }
+
+    document.getElementById('login-form').addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      const name = document.getElementById('login-name').value.trim();
+      const email = document.getElementById('login-email').value.trim();
+      if (!name || !email) return;
+      enterLab({ name, email });
+    });
+    document.getElementById('login-judge').addEventListener('click', () => {
+      enterLab({ name: 'Judge', email: 'judge@local' });
+    });
+    document.getElementById('sign-out').addEventListener('click', () => {
+      localStorage.removeItem(SESSION_KEY);
+      showLogin();
+    });
+
+    async function bootLab() {
       const params = new URLSearchParams(window.location.search);
       const shared = params.get('lab');
       if (shared) {
@@ -2424,7 +1646,13 @@
       triggerLoadRound(1);
     }
 
-    boot();
+    const existing = readSession();
+    if (!existing) {
+      showLogin();
+    } else {
+      showLab(existing);
+      bootLab();
+    }
   </script>
 </body>
 </html>

@@ -5,6 +5,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel as PydBaseModel
 
 from app.agents.brief import BriefError, interpret_brief, parse_price
@@ -201,6 +202,11 @@ def dashboard() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
 
 
+@app.get("/login")
+def login_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html")
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
@@ -342,7 +348,7 @@ def integrations() -> dict:
             {"id": "google", "name": "Google Ads", "wired": False, "now": "Paste spend/impressions to rescale waste."},
             {"id": "linkedin", "name": "LinkedIn Ads", "wired": False, "now": "Paste spend/impressions to rescale waste."},
             {"id": "share", "name": "Team login / share", "wired": True, "now": "Copy a ?lab= link for this session."},
-            {"id": "dashboard", "name": "Dashboard", "wired": False, "now": "Three-step score strip is the dashboard."},
+            {"id": "dashboard", "name": "Dashboard", "wired": True, "now": "Campaign health panel on this page."},
             {"id": "agents", "name": "Extra agents", "wired": False, "now": "Sampler, Optimizer, shoppers, Critic only."},
             {"id": "chat", "name": "Chatbot", "wired": False, "now": "Edit the brief and re-run."},
             {"id": "round4", "name": "Round 4", "wired": False, "now": "Three steps stay the product."},
@@ -382,11 +388,21 @@ def custom_campaign(req: BriefRequest, request: Request, use_cache: bool = False
     lab_id = _lab_id(request)
     try:
         activate_custom_lab(briefing, lab_id=lab_id)
-        payload = load_round(1, use_cache=use_cache, lab_id=lab_id)
     except Exception:
         return {
             "error": "That brief loaded, but the lab could not run it. Try a shorter line: brand, who should buy it, and a price.",
             "sample": "Reachify: marketing for local stores. From $100.",
         }
-    payload["agent_feed"] = payload.get("agent_feed") or []
-    return payload
+    return {
+        "ok": True,
+        "lab": "custom",
+        "company": briefing.get("company"),
+        "price": briefing.get("price"),
+        "audience": briefing.get("audience_label"),
+        "cta": briefing.get("cta"),
+        "reasoning": briefing.get("reasoning"),
+        "interpreted_by": briefing.get("interpreted_by"),
+    }
+
+
+app.mount("/assets", StaticFiles(directory=str(STATIC_DIR)), name="assets")
