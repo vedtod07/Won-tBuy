@@ -1,21 +1,37 @@
 # Won'tBuy
 
-> **Run a campaign against simulated buyers before you spend. Find the wrong audience, fix the copy, and keep the evidence.**
+> **Five AI agents put your campaign through a war room before your budget goes live.**
+>
+> They challenge the audience, inspect the spend, argue from buyer and non-buyer perspectives, isolate what failed, and iterate only the part of the campaign that needs fixing.
+
+**Won'tBuy is a campaign pre-flight simulator for teams that refuse to learn from wasted ad spend.**
+
+Most marketing tools generate more copy. Won'tBuy starts with a harder question: **will the right people buy this, and if not, is the audience wrong or are the words wrong?**
+
+It stages a five-agent campaign war room around every run:
+
+| Agent | Their job in the argument |
+| --- | --- |
+| **Brief** | Turns a product brief into the intended buyer, likely audience leak, offer, evidence, price, and CTA. |
+| **Optimizer** | Changes one variable at a time: first targeting, then copy—never both at once. |
+| **Sampler** | Simulates the paid audience and exposes targeting accuracy and off-ICP wasted spend. |
+| **Buyer panel** | Gives intended buyers and likely non-buyers a voice: who clicks, who refuses, and why. |
+| **Critic** | Challenges the current result, separates the failure modes, and tells the Optimizer what must change next. |
+
+The agents do not jump straight to a polished answer. They work through a controlled three-step argument:
+
+1. **Wrong eyes** — the buyer panel exposes that the campaign leaks to people who may click but will never buy.
+2. **Wrong words** — targeting is tightened while copy is frozen, proving that reaching the right people is not enough when the offer still fails scrutiny.
+3. **Right words** — only after the diagnosis is clear does the Optimizer rewrite the campaign with clear price, approved proof, and an offer-appropriate CTA.
+
+> **The result is not “AI-generated copy.” It is an evidence-backed recommendation for what to change, why to change it, and the revised campaign to ship.**
 
 Won'tBuy is an agentic marketing pre-flight lab for paid campaigns. It helps marketers answer two expensive questions before launching or scaling an ad:
 
 1. **Wrong eyes:** Are we paying to reach people who will never buy?
 2. **Wrong words:** Are the right people seeing the campaign but rejecting its message?
 
-Rather than acting as a generic copy generator, Won'tBuy simulates a campaign journey, evaluates it with buyer personas, identifies the failure mode, and produces an improved campaign only after the diagnosis is clear.
-
-The product currently runs a three-step loop:
-
-| Step | What changes | What it proves |
-| --- | --- | --- |
-| **1. Wrong eyes** | Nothing; inspect the original campaign | A broad campaign can attract clicks from non-buyers while intended buyers still refuse. |
-| **2. Same words** | Targeting only | Removing an audience leak improves audience quality, but weak copy can still prevent conversion. |
-| **3. Right words** | Copy only; targeting stays frozen | Clear pricing, credible proof, and an appropriate CTA can turn qualified buyer attention into intent. |
+Rather than acting as a generic copy generator, Won'tBuy streams the campaign journey in real time, lets the five agents challenge the campaign from different angles, and produces an improved campaign only after the diagnosis is clear.
 
 > **Important:** Won'tBuy is a simulator. It does not connect to Meta, Google, LinkedIn, or a live ad account. It makes this explicit in both the UI and API responses.
 
