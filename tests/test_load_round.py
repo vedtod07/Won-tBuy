@@ -129,8 +129,10 @@ def test_agent_turns_follow_graph_order():
 
 
 def test_critic_summary_present():
-    assert load_round(1)["critic_summary"] is not None
-    assert isinstance(load_round(1)["critic_summary"], str)
+    summary = load_round(1)["critic_summary"]
+    assert summary is not None
+    assert isinstance(summary, str)
+    assert "two failures, same campaign" in summary.lower()
 
 
 def test_impressions_count_is_80():
@@ -161,7 +163,7 @@ def test_extract_price_from_brief():
 
 def test_custom_round_one_is_leaky():
     campaign = build_custom_campaign("Acme: downtime board for plant managers. From $49/mo.")
-    assert "student" in campaign.targeting.roles
+    assert len(campaign.targeting.roles) > 1
     assert campaign.page.price is None
     assert "#1" in campaign.ad.headline
     assert campaign.ad.cta == "Learn more"

@@ -213,7 +213,13 @@ def custom_campaign(req: BriefRequest, use_cache: bool = False) -> dict:
             "sample": "Brightside Dental: recall SMS for UK dentists. 49 pounds per month.",
         }
 
-    activate_custom_lab(briefing)
-    payload = load_round(1, use_cache=use_cache)
+    try:
+        activate_custom_lab(briefing)
+        payload = load_round(1, use_cache=use_cache)
+    except Exception:
+        return {
+            "error": "That brief loaded, but the lab could not run it. Try a shorter line: brand, who should buy it, and a price.",
+            "sample": "Reachify: marketing for local stores. From $100.",
+        }
     payload["agent_feed"] = payload.get("agent_feed") or []
     return payload

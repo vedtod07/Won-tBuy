@@ -1,4 +1,5 @@
 import json
+import re
 
 from app.llm import CacheFallback, chat_json, live_key_present, use_cache_requested
 
@@ -37,6 +38,11 @@ PERSONAS = {
 }
 
 _ID_OBJECTION = {"klaus": "proof", "anika": "price", "mateo": "ranking"}
+NORTHLINE_IDS = {"klaus", "anika", "mateo", "jules"}
+_FACTORY_VOICE = re.compile(
+    r"operating system|plant manager|factory floor|downtime dashboard",
+    re.I,
+)
 
 
 def evaluate_persona(persona: dict, campaign: dict, round_number: int, use_cache: bool = False) -> dict:
@@ -56,10 +62,15 @@ def evaluate_persona(persona: dict, campaign: dict, round_number: int, use_cache
         live = _llm_verdict(persona, campaign, use_cache)
     except CacheFallback:
         return grounded
+    quote = str(live.get("quote") or grounded.get("quote") or "")
+    reason = str(live.get("reason") or grounded.get("reason") or "")
+    if _quote_bleeds_northline(quote, persona, campaign):
+        quote = str(grounded.get("quote") or quote)
+        reason = str(grounded.get("reason") or reason)
     return {
         **grounded,
-        "quote": str(live.get("quote") or grounded.get("quote") or ""),
-        "reason": str(live.get("reason") or grounded.get("reason") or ""),
+        "quote": quote,
+        "reason": reason,
     }
 
 
@@ -76,7 +87,50 @@ def _profile(persona: dict) -> dict:
         "trait": persona.get("trait") or stored.get("trait"),
         "is_icp": persona.get("is_icp", stored.get("is_icp", True)),
         "objection": persona.get("objection") or stored.get("objection"),
+        "audience_label": persona.get("audience_label"),
+        "product": persona.get("product"),
     }
+
+
+def _northline_shopper(persona: dict) -> bool:
+    return persona.get("id") in NORTHLINE_IDS
+
+
+def _factory_campaign(campaign: dict, persona: dict) -> bool:
+    blob = " ".join(
+        [
+            str(campaign.get("company") or ""),
+            str((campaign.get("ad") or {}).get("body") or ""),
+            str(persona.get("title") or ""),
+            str(persona.get("product") or ""),
+            str(persona.get("audience_label") or ""),
+        ]
+    ).lower()
+    return any(word in blob for word in ("factory", "plant manager", "downtime", "manufactur", "oee"))
+
+
+def _quote_bleeds_northline(quote: str, persona: dict, campaign: dict) -> bool:
+    if _northline_shopper(persona) or _factory_campaign(campaign, persona):
+        return False
+    return bool(_FACTORY_VOICE.search(quote or ""))
+
+
+def _job(persona: dict) -> str:
+    title = str(persona.get("title") or persona.get("segment") or "").replace("_", " ").strip()
+    if not title:
+        title = str(PERSONAS.get(persona.get("id"), {}).get("role") or "buyer")
+    return title.split("·")[0].strip() or "buyer"
+
+
+def _product_hook(persona: dict, campaign: dict) -> tuple[str, str]:
+    company = str(campaign.get("company") or "this brand")
+    product = str(persona.get("product") or "").strip()
+    if not product:
+        product = str((campaign.get("ad") or {}).get("body") or company)
+    hook = product.split(".")[0].strip()[:70] or company
+    if company.lower() not in hook.lower():
+        hook = company
+    return company, hook
 
 
 def _llm_verdict(persona: dict, campaign: dict, use_cache: bool) -> dict:
@@ -88,19 +142,26 @@ def _llm_verdict(persona: dict, campaign: dict, use_cache: bool) -> dict:
             " You are not the intended buyer and will never pay. "
             "If the ad sounds broadly appealing, set would_click true."
         )
+    voice = (
+        " Speak in first person as the job in persona.title about this company and product. "
+        "The quote must sound like that job reacting to this product — never like a factory "
+        "plant manager, and never mention an operating system, unless that is this job or this product."
+    )
     result = chat_json(
-        "You simulate one buyer reaction." + extra + " Return JSON only. Do not alter the campaign.",
+        "You simulate one buyer reaction." + extra + voice + " Return JSON only. Do not alter the campaign.",
         json.dumps(
             {
                 "persona": profile,
-                "campaign": campaign,
+                "company": campaign.get("company"),
+                "ad": campaign.get("ad"),
+                "page": campaign.get("page"),
                 "required_schema": {
                     "id": persona_id,
                     "reached": True,
                     "verdict": "buy|ignore|object",
                     "would_click": "boolean",
-                    "quote": "short first-person quote",
-                    "reason": "one short sentence",
+                    "quote": "short first-person quote in this shopper's voice about this product",
+                    "reason": "one short sentence naming this product and this job",
                 },
             }
         ),
@@ -132,15 +193,17 @@ def cached_verdict(persona: dict, campaign: dict) -> dict:
     if is_icp is None:
         is_icp = persona_id not in {"jules", "leak"}
     if not is_icp:
-        name = persona.get("name") or "This person"
-        return {
-            "id": persona_id,
-            "reached": True,
-            "verdict": "buy",
-            "would_click": True,
-            "quote": "It sounds like a hot new operating system.",
-            "reason": f"{name} is curious about the branding but is not the buyer.",
-        }
+        if _northline_shopper(persona):
+            name = persona.get("name") or "This person"
+            return {
+                "id": persona_id,
+                "reached": True,
+                "verdict": "buy",
+                "would_click": True,
+                "quote": "It sounds like a hot new operating system.",
+                "reason": f"{name} is curious about the branding but is not the buyer.",
+            }
+        return _custom_leak_verdict(persona, campaign)
 
     copy = " ".join(
         [
@@ -155,6 +218,12 @@ def cached_verdict(persona: dict, campaign: dict) -> dict:
     has_ranking = "#1" in copy or "best in the world" in copy
     objection = persona.get("objection") or _ID_OBJECTION.get(persona_id, "price")
 
+    if _northline_shopper(persona):
+        return _northline_buyer_verdict(persona_id, objection, has_price, has_ranking)
+    return _custom_buyer_verdict(persona, campaign, objection, has_price, has_ranking)
+
+
+def _northline_buyer_verdict(persona_id: str, objection: str, has_price: bool, has_ranking: bool) -> dict:
     if objection == "proof":
         if has_ranking or not has_price:
             return {
@@ -209,4 +278,103 @@ def cached_verdict(persona: dict, campaign: dict) -> dict:
         "would_click": True,
         "quote": "No fake claims, just what it does. Yes.",
         "reason": "No unsourced ranking claim in the copy.",
+    }
+
+
+def _custom_leak_verdict(persona: dict, campaign: dict) -> dict:
+    name = persona.get("name") or "This person"
+    company, hook = _product_hook(persona, campaign)
+    job = _job(persona)
+    return {
+        "id": persona["id"],
+        "reached": True,
+        "verdict": "buy",
+        "would_click": True,
+        "quote": f"{company} looks catchy — I'd tap it, even though I'm not who they sell to.",
+        "reason": f"{name} ({job}) would click {company} out of curiosity and never buy {hook}.",
+    }
+
+
+def _im_a(job: str) -> str:
+    voice = re.sub(r"\s+", " ", job or "buyer").strip().lower()
+    if voice.startswith("hr "):
+        voice = "HR " + voice[3:]
+    elif voice.startswith("gcse "):
+        voice = "GCSE " + voice[5:]
+    article = "an" if (voice[:1].lower() in "aeiou" or voice.lower().startswith("hr ")) else "a"
+    return f"I'm {article} {voice}"
+
+
+def _custom_buyer_verdict(
+    persona: dict,
+    campaign: dict,
+    objection: str,
+    has_price: bool,
+    has_ranking: bool,
+) -> dict:
+    persona_id = persona["id"]
+    job = _job(persona)
+    company, hook = _product_hook(persona, campaign)
+    audience = str(persona.get("audience_label") or job)
+
+    if objection == "proof":
+        if has_ranking or not has_price:
+            return {
+                "id": persona_id,
+                "reached": True,
+                "verdict": "object",
+                "would_click": False,
+                "quote": (
+                    f"{_im_a(job)}. Calling {company} '#1' with nothing behind it "
+                    f"doesn't help me buy {hook}."
+                ),
+                "reason": f"{job} wants proof for {company}, not a ranking slogan.",
+            }
+        return {
+            "id": persona_id,
+            "reached": True,
+            "verdict": "buy",
+            "would_click": True,
+            "quote": f"As {_im_a(job)[4:]}, a real number and a price — I'd go further with {company}.",
+            "reason": f"Proof and price are present for {audience}.",
+        }
+
+    if objection == "price":
+        if not has_price:
+            return {
+                "id": persona_id,
+                "reached": True,
+                "verdict": "ignore",
+                "would_click": False,
+                "quote": (
+                    f"{_im_a(job)}. No price on {company} — I'm not clicking just to find out "
+                    f"what {hook} costs."
+                ),
+                "reason": f"{job} will not click {company} when the price is missing.",
+            }
+        return {
+            "id": persona_id,
+            "reached": True,
+            "verdict": "buy",
+            "would_click": True,
+            "quote": f"The price for {company} is right there. Fine, show me.",
+            "reason": f"The price is present, so the {job} blocker is gone.",
+        }
+
+    if has_ranking:
+        return {
+            "id": persona_id,
+            "reached": True,
+            "verdict": "object",
+            "would_click": False,
+            "quote": f"Who ranked {company} #1? That means nothing when I'm buying as {_im_a(job)[4:]}.",
+            "reason": f"{job} rejects an unsourced ranking claim for {company}.",
+        }
+    return {
+        "id": persona_id,
+        "reached": True,
+        "verdict": "buy",
+        "would_click": True,
+        "quote": f"No fake ranking — just what {company} does. Yes.",
+        "reason": f"No unsourced ranking claim in the {company} copy.",
     }

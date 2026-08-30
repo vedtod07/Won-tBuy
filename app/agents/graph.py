@@ -201,6 +201,8 @@ def _one_shopper(meta: dict, campaign: dict, use_cache: bool, leak_ids: list[str
         "name": meta["name"],
         "segment": meta.get("segment"),
         "title": meta.get("title"),
+        "audience_label": meta.get("audience_label"),
+        "product": meta.get("product"),
         "is_icp": meta.get("is_icp"),
         "objection": meta.get("objection"),
         "trait": meta.get("trait"),
@@ -253,15 +255,25 @@ def critic_node(state: LabState) -> dict[str, Any]:
     accuracy = state["targeting_accuracy"]
     round_number = state["round_number"]
     personas = state["personas"]
+    company = (state.get("campaign") or {}).get("company")
+    audience = state.get("audience_label")
     try:
         summary = critic_summary(
             accuracy,
             personas=personas,
             round_number=round_number,
             use_cache=state["use_cache"],
+            company=company,
+            audience_label=audience,
         )
     except CacheFallback:
-        summary = cached_critic_summary(accuracy, round_number=round_number, personas=personas)
+        summary = cached_critic_summary(
+            accuracy,
+            round_number=round_number,
+            personas=personas,
+            company=company,
+            audience_label=audience,
+        )
 
     feed = list(state.get("agent_feed") or [])
     turns = list(state.get("agent_turns") or [])
@@ -313,9 +325,10 @@ def build_chapter(
                 "and they would not click."
             ),
             "body": (
-                f"{leak_name} saw the {company} ad and would click (wasted spend). "
-                f"{buyer_names} saw it too and still would not click: "
-                "no price on the page, unsourced #1. Two failures, same campaign."
+                f"{leak_name} saw the {company} ad and would click (wasted spend — not {audience}). "
+                f"{buyer_names} are {audience} and still would not click: "
+                "no price on the page, unsourced #1."
+                + (" Two failures, same campaign." if audience_label is None else "")
             ),
             "accuracy_sub": f"Broad targeting leaked off-ICP. Intended: {audience}.",
         }
