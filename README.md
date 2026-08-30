@@ -85,6 +85,8 @@ Leak: solo indie hackers. Proof: 99.95% alert delivery SLA.
 
 The brief parser creates buyer and leak personas from the user’s own audience language. It does not simply relabel the Northline demonstration personas.
 
+The **audience builder** lets you review and edit those generated personas — firmographics, objections, and exclusion lists — before a run, so the war room argues about *your* buyers, not a demo's.
+
 ### Campaign economics
 
 Won'tBuy accepts any of these inputs:
@@ -101,6 +103,8 @@ spend,impressions
 ```
 
 The simulator still creates the audience sample; supplied economics rescale the waste calculation and are marked as `user_spend` or `user_cpc` in the response.
+
+You can also **upload a CSV** in the UI. The file is inspected in code (columns mapped onto spend/impressions/cpc, totals summed deterministically) and read by the live model to guess who the export was aimed at and who might be wasted reach. A realistic sample is bundled at `app/static/demo/last-campaign.csv` for the demo.
 
 ### Reliability and fallback behavior
 
@@ -297,13 +301,14 @@ The product should stay focused on campaign diagnosis and evidence, rather than 
 
 ### Highest-value features to ship
 
-1. **CSV upload and validation** — the current text CSV field is useful for a prototype. A proper file uploader, mapping screen, and validation report would make real-campaign import practical.
+1. **CSV file uploader with validation** — the current paste/upload path accepts simple CSV text and is inspected in code. A dedicated file dropzone, interactive column-mapping screen, and validation report would make real-campaign import feel like a product rather than a prototype.
 2. **Platform adapters, read-only first** — import campaign/ad-set metrics from Meta, Google Ads, and LinkedIn; do not write changes automatically. This would let the simulator seed itself from actual audience and spend data.
-3. **Audience builder** — let users edit the generated intended-buyer and leak personas before a run, including firmographic constraints, objections, and exclusion lists.
+3. **Audience builder polish** — the persona editor exists; extend it with saved audience templates, exclusion lists, and firmographic constraints that feed the optimizer's targeting rules directly.
 4. **Evidence-backed copy constraints** — let users attach proof sources, customer quotes, product docs, or approved claims. The optimizer can then distinguish permissible proof from unsupported marketing claims.
 5. **Experiment history** — persist round history and show score/waste/conversion movement over multiple campaign experiments rather than one three-step lab run.
 6. **Shareable hosted reports** — replace local-only lab links with signed hosted reports and a small team workspace.
 7. **Styled PDF / slide export** — turn the existing Markdown report into a presentation-ready client or stakeholder artifact.
+8. **Learning loop** — the future differentiator. Close the loop between prediction and outcome: let a run record its *predicted* buyer/waste numbers, then later import the campaign's *actual* post-launch metrics (or even the platform's native spend/conversion data) so the agents learn which of their calls were right and get measurably better on your account over time. That turns a one-shot simulator into a model that compounds with every campaign.
 
 ### Useful but later
 
