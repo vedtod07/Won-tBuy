@@ -108,6 +108,7 @@ def chat_json(system: str, user: str, use_cache: bool = False) -> dict:
         raise CacheFallback("Cached fixtures requested or no API key")
 
     is_gemini = api_key.startswith("AIza")
+    was_limited = rate_limited()
     attempt = 0
     while True:
         try:
@@ -132,9 +133,13 @@ def chat_json(system: str, user: str, use_cache: bool = False) -> dict:
             if error.code == 429:
                 retry_after = _retry_after_seconds(error)
                 _mark_rate_limited(retry_after)
-                if attempt < MAX_RETRIES:
+                # Retry only when the server promises a short cooldown. The
+                # free tier returns tens of seconds, so a retry would always
+                # fail again — fall back instantly instead of freezing a demo
+                # on multi-second sleeps.
+                if retry_after <= MAX_BACKOFF_SECONDS and not was_limited and attempt < MAX_RETRIES:
                     attempt += 1
-                    time.sleep(min(retry_after, MAX_BACKOFF_SECONDS))
+                    time.sleep(retry_after)
                     continue
             _last_call.update({
                 "live_or_cache": "cache",
@@ -162,7 +167,7 @@ def _retry_after_seconds(error: HTTPError) -> float:
 
 
 def _gemini_chat_json(api_key: str, system: str, user: str) -> dict:
-    model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+    model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
         f"{model}:generateContent?key={api_key}"
