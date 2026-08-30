@@ -239,6 +239,137 @@
       cursor: not-allowed;
     }
 
+    .integrations-panel {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem 1.15rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .integrations-kicker {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .integrations-lead {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin: 0 0 0.85rem;
+    }
+
+    .integ-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    @media (min-width: 720px) {
+      .integ-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .integ-btn {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.55rem 0.65rem;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 650;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .integ-btn:hover {
+      background: var(--surface-raised);
+      border-color: var(--muted);
+    }
+
+    .integ-btn .integ-soon {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent-glow);
+    }
+
+    .integ-btn.wired .integ-soon {
+      color: var(--success);
+    }
+
+    .integ-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 1100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .integ-modal-backdrop.open {
+      display: flex;
+    }
+
+    .integ-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.85rem;
+      max-width: 32rem;
+      width: 100%;
+      padding: 1.25rem 1.35rem;
+    }
+
+    .integ-modal h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.05rem;
+    }
+
+    .integ-modal p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0 0 0.85rem;
+    }
+
+    .integ-modal label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin: 0.5rem 0 0.25rem;
+    }
+
+    .integ-modal input {
+      width: 100%;
+      background: #0b0f19;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 0.4rem;
+      padding: 0.5rem 0.65rem;
+      font-family: inherit;
+    }
+
+    .integ-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
     /* Story Area */
     .story-banner {
       background: linear-gradient(135deg, #1e293b, #0f172a);
@@ -962,6 +1093,45 @@
       </button>
     </div>
 
+    <section class="integrations-panel" id="integrations-panel">
+      <div class="integrations-kicker">Optional · connect later</div>
+      <p class="integrations-lead">The lab is a simulator today. These hooks are the product path — live ads, a fourth round, dashboards, and team login — without blocking the three-step diagnosis.</p>
+      <div class="integ-grid">
+        <button type="button" class="integ-btn" id="integ-meta" data-integ="meta">
+          Meta Ads
+          <span class="integ-soon">Ready to connect</span>
+        </button>
+        <button type="button" class="integ-btn" id="integ-google" data-integ="google">
+          Google Ads
+          <span class="integ-soon">Ready to connect</span>
+        </button>
+        <button type="button" class="integ-btn" id="integ-linkedin" data-integ="linkedin">
+          LinkedIn Ads
+          <span class="integ-soon">Ready to connect</span>
+        </button>
+        <button type="button" class="integ-btn wired" id="integ-login" data-integ="share">
+          Team login / share
+          <span class="integ-soon">Link works now</span>
+        </button>
+        <button type="button" class="integ-btn" id="integ-dashboard" data-integ="dashboard">
+          Dashboard
+          <span class="integ-soon">Hook ready</span>
+        </button>
+        <button type="button" class="integ-btn" id="integ-agents" data-integ="agents">
+          Extra agents
+          <span class="integ-soon">Hook ready</span>
+        </button>
+        <button type="button" class="integ-btn" id="integ-chat" data-integ="chat">
+          Chatbot
+          <span class="integ-soon">Hook ready</span>
+        </button>
+        <button type="button" class="integ-btn" id="integ-round4" data-integ="round4">
+          Round 4
+          <span class="integ-soon">Hook ready</span>
+        </button>
+      </div>
+    </section>
+
     <!-- Story Banner (Spinner placeholder inside) -->
     <div id="story-banner" class="story-banner r1">
       <div id="story-content" class="story-text">
@@ -1100,7 +1270,7 @@
       </summary>
       <div class="details-content">
         <form id="brief-form" class="brief-form">
-          <textarea id="brief-input" class="brief-textarea" placeholder="Brand, who should buy it, and a real price. Example: Kicksly: stock alerts for independent shoe stores. 29 pounds per month."></textarea>
+          <textarea id="brief-input" class="brief-textarea" placeholder="Brand, who should buy it, a price. Optional: Buyer: … Leak: …  Example: Nimbus: log search. From $80/mo. Buyer: cloud ops managers at banks. Leak: solo indie hackers."></textarea>
           <div class="brief-actions">
             <button type="submit" id="custom-submit-btn" class="cta-button" style="width: auto;">Run as step 1, then use steps 2 and 3</button>
           </div>
@@ -1109,6 +1279,41 @@
         </form>
       </div>
     </details>
+
+    <details id="details-numbers">
+      <summary>
+        <span>Paste last campaign numbers</span>
+        <span style="font-size: 0.8rem; color: var(--muted);">Simulator stays; waste uses your spend</span>
+      </summary>
+      <div class="details-content">
+        <form id="numbers-form" class="brief-form">
+          <label for="num-spend">Spend</label>
+          <input id="num-spend" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 1200">
+          <label for="num-impr">Impressions</label>
+          <input id="num-impr" class="brief-textarea" style="min-height:0;" type="number" min="1" step="1" placeholder="e.g. 8000">
+          <label for="num-cpc">Or CPC / cost per impression</label>
+          <input id="num-cpc" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 0.10">
+          <label for="num-csv">Or CSV (spend, impressions, cpc columns)</label>
+          <textarea id="num-csv" class="brief-textarea" placeholder="spend,impressions&#10;1200,8000"></textarea>
+          <div class="brief-actions">
+            <button type="submit" id="numbers-submit-btn" class="cta-button" style="width:auto;">Apply numbers</button>
+          </div>
+          <div id="numbers-status" class="brief-sample"></div>
+        </form>
+      </div>
+    </details>
+  </div>
+
+  <div id="integ-modal-backdrop" class="integ-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="integ-modal-title">
+    <div class="integ-modal">
+      <h3 id="integ-modal-title">Connect later</h3>
+      <p id="integ-modal-body">This integration is not wired yet.</p>
+      <div id="integ-modal-extra"></div>
+      <div class="integ-modal-actions">
+        <button type="button" id="integ-modal-close" class="export-btn">Close</button>
+        <button type="button" id="integ-modal-action" class="cta-button" style="width:auto;">Use the simulator</button>
+      </div>
+    </div>
   </div>
 
   <!-- Toast Element -->
@@ -1123,7 +1328,8 @@
       currentRound: 1,
       completed: { 1: false, 2: false, 3: false },
       labId: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('lab-' + Date.now()),
-      rounds: {}
+      rounds: {},
+      economics: null
     };
 
     const narratives = {
@@ -1369,16 +1575,21 @@
       const waste = data.waste || {};
       const wasteEl = document.getElementById('metric-waste');
       const wasteText = document.getElementById('metric-waste-text');
+      const symbol = '€';
       if (wasteEl) {
-        const euros = Number(waste.wasted_spend || 0).toFixed(2);
-        wasteEl.textContent = '€' + euros;
+        const amount = Number(waste.wasted_spend || 0).toFixed(2);
+        wasteEl.textContent = symbol + amount;
       }
       if (wasteText) {
         const off = waste.off_icp != null ? waste.off_icp : '?';
         const share = waste.waste_share != null ? waste.waste_share : '?';
         const onShare = waste.impressions ? Math.round((waste.on_icp / waste.impressions) * 100) : accuracy;
+        const amount = Number(waste.wasted_spend || 0).toFixed(2);
+        const userSpend = waste.source === 'user_spend' || waste.source === 'user_cpc';
         if (r === 1) {
-          wasteText.textContent = `Round 1 wasted €${Number(waste.wasted_spend || 0).toFixed(2)} reaching ${share}% off-ICP impressions.`;
+          wasteText.textContent = userSpend
+            ? `Round 1 wasted ${symbol}${amount} (${share}% off-ICP of your last campaign). Mix is still 80 simulated impressions.`
+            : `Round 1 wasted ${symbol}${amount} reaching ${share}% off-ICP impressions.`;
         } else {
           wasteText.textContent = `Round ${r} spent it on the right ${onShare}% (${off} off-ICP of ${waste.impressions || 80}).`;
         }
@@ -1757,6 +1968,44 @@
       }
     });
 
+    async function saveEconomics(payload) {
+      const res = await fetch('/api/lab/numbers', {
+        method: 'POST',
+        headers: labHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Could not save numbers.');
+      state.economics = data.economics;
+      if (!state.loading && state.currentRound) {
+        await triggerLoadRound(state.currentRound);
+      }
+      return data.economics;
+    }
+
+    function optNum(id) {
+      const value = parseFloat(document.getElementById(id).value);
+      return isFinite(value) ? value : null;
+    }
+
+    document.getElementById('numbers-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const status = document.getElementById('numbers-status');
+      status.textContent = '';
+      try {
+        await saveEconomics({
+          spend: optNum('num-spend'),
+          impressions: optNum('num-impr'),
+          cpc: optNum('num-cpc'),
+          csv: document.getElementById('num-csv').value.trim()
+        });
+        status.textContent = 'Waste now uses your numbers. Who clicked is still the 80-impression simulator.';
+        showToast('Waste uses your campaign numbers.');
+      } catch (err) {
+        status.textContent = err.message || 'Could not apply numbers.';
+      }
+    });
+
     document.getElementById('play-all-btn').addEventListener('click', async () => {
       if (state.loading) return;
       state.rounds = {};
@@ -1766,11 +2015,156 @@
       showToast('All three steps played.');
     });
 
+    const INTEGRATIONS = {
+      meta: {
+        title: 'Meta Ads',
+        body: 'OAuth into Meta is not wired — live ads stay simulated. Paste last-campaign numbers below to rescale wasted spend on this lab today. Connecting the API later would pull the same fields automatically.',
+        paste: true
+      },
+      google: {
+        title: 'Google Ads',
+        body: 'Google Ads API is not connected. The simulator still diagnoses targeting vs copy. Paste spend and impressions to use your economics now; a future connect would import the same CSV the Ads UI already exports.',
+        paste: true
+      },
+      linkedin: {
+        title: 'LinkedIn Ads',
+        body: 'LinkedIn campaign manager is not connected. This lab already previews a sponsored unit. Paste CPC or spend to dollarize the leak; a future connect would map audiences to the targeting checklist from step 2.',
+        paste: true
+      },
+      share: {
+        title: 'Team login / share',
+        body: 'No accounts yet. Anyone with this lab link can reopen the same brief (after you run a custom campaign). That is the share path until login exists.',
+        share: true
+      },
+      dashboard: {
+        title: 'Dashboard',
+        body: 'A metrics dashboard is a hook, not a second product. The three-step score (accuracy, 0/3→3/3, waste) is the dashboard today. A future view would chart those same fields across saved labs — not vanity charts.',
+        paste: false
+      },
+      agents: {
+        title: 'Extra agents',
+        body: 'Sampler, Optimizer, shoppers, and Critic already split eyes vs words. More agents would dilute that. This button is the slot for a later specialist (e.g. offer-type CTA) — not a swarm.',
+        paste: false
+      },
+      chat: {
+        title: 'Chatbot',
+        body: 'A chatbot is not wired. Correct the brief and re-run the three steps instead. A later chat would only edit audience, leak, or price, then re-invoke the same graph.',
+        paste: false
+      },
+      round4: {
+        title: 'Round 4',
+        body: 'Three steps are the product: wrong eyes, right eyes / wrong words, right words. A fourth round would be A/B on the winning copy — not another failure. Not enabled, so the story stays two failures then a fix.',
+        paste: false
+      }
+    };
+
+    function shareLabUrl() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('lab', state.labId);
+      return url.toString();
+    }
+
+    function openIntegModal(id) {
+      const spec = INTEGRATIONS[id];
+      if (!spec) return;
+      const backdrop = document.getElementById('integ-modal-backdrop');
+      const title = document.getElementById('integ-modal-title');
+      const body = document.getElementById('integ-modal-body');
+      const extra = document.getElementById('integ-modal-extra');
+      const action = document.getElementById('integ-modal-action');
+      title.textContent = spec.title;
+      body.textContent = spec.body;
+      extra.innerHTML = '';
+      action.style.display = '';
+      if (spec.paste) {
+        extra.innerHTML = `
+          <label for="econ-spend">Last campaign spend</label>
+          <input id="econ-spend" type="number" min="0" step="0.01" placeholder="e.g. 1200">
+          <label for="econ-impr">Impressions</label>
+          <input id="econ-impr" type="number" min="1" step="1" placeholder="e.g. 8000">
+          <label for="econ-cpc">Or cost per impression / click</label>
+          <input id="econ-cpc" type="number" min="0" step="0.01" placeholder="e.g. 0.10">
+        `;
+        action.textContent = 'Apply numbers to this lab';
+        action.onclick = async () => {
+          const spend = parseFloat(document.getElementById('econ-spend').value);
+          const impressions = parseFloat(document.getElementById('econ-impr').value);
+          const cpc = parseFloat(document.getElementById('econ-cpc').value);
+          if (!cpc && !(spend && impressions)) {
+            showToast('Enter spend + impressions, or a CPC.');
+            return;
+          }
+          try {
+            await saveEconomics({
+              spend: isFinite(spend) ? spend : null,
+              impressions: isFinite(impressions) ? impressions : null,
+              cpc: isFinite(cpc) ? cpc : null
+            });
+            closeIntegModal();
+            showToast('Waste now uses your numbers. Ads stay simulated.');
+          } catch (err) {
+            showToast(err.message || 'Could not apply numbers.');
+          }
+        };
+      } else if (spec.share) {
+        extra.innerHTML = `<label>Lab link</label><input id="econ-share" readonly value="${esc(shareLabUrl())}">`;
+        action.textContent = 'Copy lab link';
+        action.onclick = async () => {
+          const link = shareLabUrl();
+          try {
+            await navigator.clipboard.writeText(link);
+            showToast('Lab link copied.');
+          } catch (err) {
+            document.getElementById('econ-share').select();
+            showToast('Copy the link from the field.');
+          }
+        };
+      } else {
+        action.textContent = 'Back to the three steps';
+        action.onclick = () => closeIntegModal();
+      }
+      backdrop.classList.add('open');
+    }
+
+    function closeIntegModal() {
+      document.getElementById('integ-modal-backdrop').classList.remove('open');
+    }
+
+    document.querySelectorAll('[data-integ]').forEach((btn) => {
+      btn.addEventListener('click', () => openIntegModal(btn.getAttribute('data-integ')));
+    });
+    document.getElementById('integ-modal-close').addEventListener('click', closeIntegModal);
+    document.getElementById('integ-modal-backdrop').addEventListener('click', (ev) => {
+      if (ev.target.id === 'integ-modal-backdrop') closeIntegModal();
+    });
+
     // Initial load
     async function boot() {
-      try {
-        await fetch('/api/lab/reset', { method: 'POST', headers: labHeaders() });
-      } catch (e) {}
+      const params = new URLSearchParams(window.location.search);
+      const shared = params.get('lab');
+      if (shared) {
+        state.labId = shared;
+      }
+      if (!shared) {
+        try {
+          await fetch('/api/lab/reset', { method: 'POST', headers: labHeaders() });
+        } catch (e) {}
+      } else {
+        try {
+          const res = await fetch('/api/labs/' + encodeURIComponent(shared) + '/restore', {
+            method: 'POST',
+            headers: labHeaders()
+          });
+          const data = await res.json();
+          if (data.error) {
+            await fetch('/api/lab/reset', { method: 'POST', headers: labHeaders() });
+          }
+        } catch (e) {
+          try {
+            await fetch('/api/lab/reset', { method: 'POST', headers: labHeaders() });
+          } catch (err) {}
+        }
+      }
       try {
         const res = await fetch('/api/status', { headers: labHeaders() });
         if (res.ok) {

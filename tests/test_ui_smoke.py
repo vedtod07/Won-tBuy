@@ -20,6 +20,13 @@ def test_dashboard_has_waste_compare_and_play():
     assert "/api/round/${roundNumber}/stream" in HTML
     assert "X-Lab-Id" in HTML
     assert "Rate-limited → cached" in HTML
+    assert 'id="integrations-panel"' in HTML
+    assert 'id="integ-meta"' in HTML
+    assert 'id="integ-google"' in HTML
+    assert 'id="integ-linkedin"' in HTML
+    assert 'id="integ-login"' in HTML
+    assert 'id="details-numbers"' in HTML
+    assert "Paste last campaign numbers" in HTML
 
 
 def test_round_one_payload_has_waste_line():
@@ -28,3 +35,14 @@ def test_round_one_payload_has_waste_line():
     assert data["waste"]["wasted_spend"] == 4.8
     assert data["chapter"]["eyes"] == "Wrong eyes"
     assert data["chapter"]["words"] == "Wrong words"
+
+
+def test_integrations_catalog_does_not_claim_live_ads():
+    from app.main import integrations
+
+    data = integrations()
+    assert data["live_ads"] is False
+    ids = {row["id"]: row for row in data["integrations"]}
+    assert ids["meta"]["wired"] is False
+    assert ids["google"]["wired"] is False
+    assert ids["share"]["wired"] is True

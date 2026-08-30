@@ -14,7 +14,7 @@ from app.agents.critic import cached_critic_summary, critic_summary
 from app.agents.optimizer import rewrite_copy, tighten_targeting
 from app.agents.personas import cached_verdict, evaluate_shopper
 from app.agents.tools import campaign_as_dict, run_sampler, shopper_is_reached
-from app.impressions import wasted_spend
+from app.impressions import apply_economics, wasted_spend
 from app.llm import CacheFallback, chat_json, last_call_meta, live_key_present, use_cache_requested
 from app.models import Campaign
 
@@ -31,6 +31,7 @@ class LabState(TypedDict, total=False):
     live: bool
     northline: bool
     required_price: str
+    required_cta: str
     proof_line: str
     tight_targeting: dict
     leak_roles: list[str]
@@ -48,6 +49,7 @@ class LabState(TypedDict, total=False):
     optimizer_error: str | None
     optimizer_iterations: int
     waste: dict
+    economics: dict | None
 
 
 def _offline(use_cache: bool) -> bool:
@@ -112,7 +114,10 @@ def sampler_node(state: LabState) -> dict[str, Any]:
         }
     )
     accuracy = tool["targeting_accuracy"]
-    waste = tool.get("waste") or wasted_spend(tool["impressions"])
+    waste = apply_economics(
+        tool.get("waste") or wasted_spend(tool["impressions"]),
+        state.get("economics"),
+    )
     fallback = (
         f"I bought {tool['n']} simulated impressions (seed {tool['seed']}). "
         f"{accuracy}% were in-target. Off-ICP waste: €{waste['wasted_spend']:.2f} "
@@ -184,6 +189,7 @@ def optimizer_node(state: LabState) -> dict[str, Any]:
         tight = state.get("tight_targeting")
         campaign = tighten_targeting(campaign, tight)
         required_price = state.get("required_price") or "from €199/mo"
+        required_cta = state.get("required_cta") or "Book a demo"
         northline = bool(state.get("northline", True))
         live = bool(state.get("live"))
         cached = None if live else (_load_round_three_campaign() if northline else None)
@@ -194,6 +200,7 @@ def optimizer_node(state: LabState) -> dict[str, Any]:
             allow_fixture=northline and not live,
             required_price=required_price,
             proof_line=state.get("proof_line"),
+            required_cta=required_cta,
         )
         if error:
             text = error
@@ -201,7 +208,7 @@ def optimizer_node(state: LabState) -> dict[str, Any]:
         else:
             fallback = (
                 f"I called rewrite_copy ({iterations} pass{'es' if iterations != 1 else ''}). "
-                f"Price is {required_price}, no unsourced #1, CTA is Book a demo. "
+                f"Price is {required_price}, no unsourced #1, CTA is {required_cta}. "
                 "Targeting is unchanged."
             )
             text, trace = _speak(
@@ -342,6 +349,7 @@ def build_chapter(
     accuracy: float,
     purchase: str,
     audience_label: str | None = None,
+    cta: str | None = None,
 ) -> dict:
     leak = next((row for row in personas if row.get("is_icp") is False), None)
     buyers = [row for row in personas if row.get("is_icp")]
@@ -380,16 +388,17 @@ def build_chapter(
             ),
             "accuracy_sub": f"Leak dropped. Audience: {audience}.",
         }
+    action = cta or "Book a demo"
     return {
         "eyes": "Right eyes",
         "words": "Right words",
         "people_title": "Right audience + copy the buyers will click",
         "people_sub": (
-            f"Same targeting as step 2. Price, no #1, Book a demo. {purchase} buyers would click."
+            f"Same targeting as step 2. Price, no #1, {action}. {purchase} buyers would click."
         ),
         "body": (
             f"Targeting stayed on {audience}. Copy now states the brief's price, drops the unsourced ranking, "
-            f"and asks to book a demo. {buyer_names} would click. {leak_name} was not reached."
+            f"and uses “{action}”. {buyer_names} would click. {leak_name} was not reached."
         ),
         "accuracy_sub": "Same tight targeting as step 2.",
     }
@@ -408,11 +417,13 @@ def _initial_state(
     required_price: str | None,
     northline: bool,
     briefing: dict | None,
+    economics: dict | None = None,
 ) -> tuple[dict, dict]:
-    from app.agents.optimizer import FIXED_PRICE
+    from app.agents.optimizer import FIXED_CTA, FIXED_PRICE
 
     campaign = client if client is not None else _load_client_campaign()
     price = required_price or (briefing or {}).get("price") or FIXED_PRICE
+    required_cta = (briefing or {}).get("cta") or FIXED_CTA
     live = live_key_present() and not use_cache_requested(use_cache)
     personas_meta = (briefing or {}).get("personas") or _persona_meta()
     leak_roles = [str((briefing or {}).get("leak_role") or "student")]
@@ -428,6 +439,7 @@ def _initial_state(
         "live": live,
         "northline": northline,
         "required_price": price,
+        "required_cta": required_cta,
         "proof_line": proof_line,
         "tight_targeting": tight,
         "leak_roles": leak_roles,
@@ -439,10 +451,12 @@ def _initial_state(
         "agent_turns": [],
         "optimizer_error": None,
         "optimizer_iterations": 0,
+        "economics": economics,
     }
     meta = {
         "campaign": campaign,
         "price": price,
+        "required_cta": required_cta,
         "live": live,
         "northline": northline,
         "briefing": briefing,
@@ -453,6 +467,7 @@ def _initial_state(
         "personas_meta": personas_meta,
         "leak_ids": leak_ids,
         "leak_roles": leak_roles,
+        "economics": economics,
     }
     return state, meta
 
@@ -472,6 +487,7 @@ def _converge_copy(result: dict, meta: dict) -> dict:
             allow_fixture=False,
             required_price=meta["price"],
             proof_line=meta.get("proof_line"),
+            required_cta=meta.get("required_cta") or "Book a demo",
         )
         iterations += max(n, 1)
         result["campaign"] = campaign_as_dict(camp)
@@ -516,7 +532,10 @@ def _finalize(result: dict, meta: dict) -> dict:
             "live_or_cache": "live" if live_brief else "cache",
             "latency_ms": 0,
         })
-    waste = result.get("waste") or wasted_spend(result.get("impressions") or [])
+    waste = apply_economics(
+        result.get("waste") or wasted_spend(result.get("impressions") or []),
+        meta.get("economics"),
+    )
     return {
         "round": meta["round_number"],
         "mode": "simulated",
@@ -537,6 +556,7 @@ def _finalize(result: dict, meta: dict) -> dict:
             "company": company,
             "price": meta["price"],
             "audience": audience_label,
+            "cta": meta.get("required_cta"),
             "reasoning": (briefing or {}).get("reasoning"),
             "interpreted_by": (briefing or {}).get("interpreted_by"),
         } if briefing else None,
@@ -547,6 +567,7 @@ def _finalize(result: dict, meta: dict) -> dict:
             result["targeting_accuracy"],
             purchase,
             audience_label,
+            meta.get("required_cta"),
         ),
     }
 
@@ -558,9 +579,10 @@ def run_lab_round(
     required_price: str | None = None,
     northline: bool = True,
     briefing: dict | None = None,
+    economics: dict | None = None,
 ) -> dict:
     initial, meta = _initial_state(
-        round_number, use_cache, client, required_price, northline, briefing
+        round_number, use_cache, client, required_price, northline, briefing, economics
     )
     result = LAB_GRAPH.invoke(initial)
     return _finalize(result, meta)
@@ -573,9 +595,10 @@ def stream_lab_round(
     required_price: str | None = None,
     northline: bool = True,
     briefing: dict | None = None,
+    economics: dict | None = None,
 ) -> Iterator[dict]:
     initial, meta = _initial_state(
-        round_number, use_cache, client, required_price, northline, briefing
+        round_number, use_cache, client, required_price, northline, briefing, economics
     )
     accumulated = dict(initial)
     for update in LAB_GRAPH.stream(initial, stream_mode="updates"):

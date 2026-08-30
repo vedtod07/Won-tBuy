@@ -107,3 +107,39 @@ def test_every_row_has_required_fields():
     impressions = sample_impressions(_broad_campaign().targeting)
     for row in impressions:
         assert {"id", "industry", "role", "company_size", "region", "in_icp"} <= set(row)
+
+
+def test_apply_economics_uses_user_spend():
+    from app.impressions import apply_economics, wasted_spend
+
+    waste = wasted_spend(sample_impressions(_broad_campaign().targeting))
+    scaled = apply_economics(waste, {"spend": 1000})
+    assert scaled["total_spend"] == 1000
+    assert scaled["wasted_spend"] == 600.0
+    assert scaled["source"] == "user_spend"
+
+
+def test_parse_campaign_economics_from_csv():
+    from app.impressions import parse_campaign_economics
+
+    data = parse_campaign_economics(csv_text="spend,impressions\n400,2000\n600,2000")
+    assert data["spend"] == 1000
+    assert data["impressions"] == 4000
+    assert data["cost_per_impression"] == 0.25
+
+
+def test_pasted_spend_rescales_round_one_waste_not_the_mix():
+    from app.impressions import parse_campaign_economics
+    from app.main import get_lab, load_round, reset_lab
+
+    reset_lab()
+    try:
+        get_lab()["economics"] = parse_campaign_economics(spend=1200, impressions=8000)
+        data = load_round(1)
+        assert data["waste"]["off_icp"] == 48
+        assert data["waste"]["impressions"] == 80
+        assert data["waste"]["wasted_spend"] == 720.0
+        assert data["waste"]["total_spend"] == 1200
+        assert data["waste"]["source"] == "user_spend"
+    finally:
+        reset_lab()

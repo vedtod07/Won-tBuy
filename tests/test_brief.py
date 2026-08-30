@@ -327,3 +327,71 @@ def test_three_brands_keep_their_own_price_and_audience_words():
         seen_labels.add(briefing["audience_label"].lower())
     assert seen_prices == {"from £49/mo", "from €199/mo", "from £12/mo"}
     assert len(seen_labels) >= 2
+
+
+_TELL_NAMES = {"priya", "owen", "mina", "klaus", "anika", "mateo", "jules", "alex", "lena"}
+
+
+def test_custom_shoppers_are_not_demo_tells():
+    briefing = interpret_brief(
+        "MokaLane: specialty coffee wholesale for neighbourhood cafe owners. 39 euros a month.",
+        use_cache=True,
+    )
+    names = [row["name"].lower() for row in briefing["personas"]]
+    assert not _TELL_NAMES.intersection(names)
+    assert briefing["personas"][0]["id"] == "buyer_proof"
+    assert briefing["personas"][-1]["id"] == "leak"
+    assert briefing["personas"][-1]["is_icp"] is False
+    assert "cafe" in briefing["personas"][0]["title"].lower()
+
+
+def test_two_brands_mint_different_people():
+    cafe = interpret_brief(
+        "MokaLane: specialty coffee wholesale for neighbourhood cafe owners. 39 euros a month.",
+        use_cache=True,
+    )
+    mugs = interpret_brief("Clayfolk: handmade mugs for home cooks. 18 pounds each.", use_cache=True)
+    cafe_names = [row["name"] for row in cafe["personas"]]
+    mug_names = [row["name"] for row in mugs["personas"]]
+    assert cafe_names != mug_names
+    assert len(set(cafe_names)) == 4
+    assert "cafe" in cafe["personas"][0]["title"].lower()
+    assert "cook" in mugs["personas"][0]["title"].lower()
+
+
+def test_explicit_buyer_and_leak_clauses_mint_that_audience():
+    briefing = interpret_brief(
+        "Nimbus: log search. From $80/mo. Buyer: cloud ops managers at banks. Leak: solo indie hackers.",
+        use_cache=True,
+    )
+    label = briefing["audience_label"].lower()
+    assert "ops" in label or "cloud" in label or "bank" in label
+    leak = briefing["personas"][-1]
+    assert leak["is_icp"] is False
+    blob = (leak["title"] + " " + str(leak.get("segment") or "")).lower()
+    assert "indie" in blob or "hacker" in blob
+    names = [row["name"].lower() for row in briefing["personas"]]
+    assert not _TELL_NAMES.intersection(names)
+
+
+def test_infer_cta_matches_the_offer():
+    from app.agents.brief import infer_cta
+
+    assert infer_cta("Clayfolk: handmade mugs for home cooks. 18 pounds each.") == "Shop now"
+    assert infer_cta("Ironroom: gym membership for busy parents. From $49/mo.") == "Book a class"
+    assert infer_cta("SkillNest: Excel crash course. 199 dollars one time.") == "Enroll"
+    assert infer_cta("Brightside Dental: recall SMS for UK dentists. 49 pounds per month.") == "Book an appointment"
+    assert infer_cta("Northline: downtime dashboard for plant managers. From €199/mo.") == "Book a demo"
+    assert infer_cta("Reachify: marketing for local stores. From $100.") == "Book a demo"
+
+
+def test_clayfolk_round_three_uses_shop_now():
+    briefing = interpret_brief("Clayfolk: handmade mugs for home cooks. 18 pounds each.", use_cache=True)
+    assert briefing["cta"] == "Shop now"
+    activate_custom_lab(briefing)
+    round_three = load_round(3)
+    assert round_three["campaign"]["ad"]["cta"] == "Shop now"
+    assert round_three["campaign"]["page"]["cta"] == "Shop now"
+    proof = (round_three["campaign"]["page"].get("proof") or "").lower()
+    assert "plants across europe" not in proof
+    assert "Shop now" in round_three["chapter"]["people_sub"]

@@ -10,6 +10,7 @@ from pydantic import BaseModel as PydBaseModel
 from app.agents.brief import BriefError, interpret_brief, parse_price
 from app.agents.graph import run_lab_round, stream_lab_round
 from app.agents.optimizer import FIXED_PRICE
+from app.impressions import parse_campaign_economics
 from app.labs_store import list_labs as stored_labs
 from app.labs_store import load_lab as stored_load
 from app.labs_store import save_lab
@@ -40,6 +41,7 @@ def _empty_slot() -> dict:
         "price": FIXED_PRICE,
         "northline": True,
         "briefing": None,
+        "economics": None,
     }
 
 
@@ -79,6 +81,7 @@ def load_round(round_number: int, use_cache: bool = False, lab_id: str = DEFAULT
         required_price=slot["price"],
         northline=slot["northline"],
         briefing=slot.get("briefing"),
+        economics=slot.get("economics"),
     )
     if slot.get("briefing"):
         save_lab(lab_id, slot["briefing"], payload)
@@ -234,6 +237,7 @@ def _stream_round(round_number: int, request: Request, use_cache: bool):
             required_price=slot["price"],
             northline=slot["northline"],
             briefing=slot.get("briefing"),
+            economics=slot.get("economics"),
         ):
             yield json.dumps(chunk) + "\n"
 
@@ -259,6 +263,13 @@ class BriefRequest(PydBaseModel):
     brief: str = ""
 
 
+class NumbersRequest(PydBaseModel):
+    spend: float | None = None
+    impressions: float | None = None
+    cpc: float | None = None
+    csv: str = ""
+
+
 @app.get("/api/export/campaign.md")
 def export_campaign() -> Response:
     markdown = build_campaign_markdown()
@@ -282,6 +293,24 @@ def build_custom_campaign(brief: str, use_cache: bool = True):
     return interpret_brief(brief, use_cache=use_cache)["campaign"]
 
 
+@app.post("/api/lab/numbers")
+def lab_numbers(req: NumbersRequest, request: Request) -> dict:
+    try:
+        economics = parse_campaign_economics(
+            spend=req.spend,
+            impressions=req.impressions,
+            cpc=req.cpc,
+            csv_text=req.csv or None,
+        )
+    except (TypeError, ValueError):
+        return {"error": "Could not read those numbers."}
+    if not economics:
+        return {"error": "Enter spend + impressions, a CPC, or a CSV with those columns."}
+    slot = get_lab(_lab_id(request))
+    slot["economics"] = economics
+    return {"ok": True, "economics": economics}
+
+
 @app.post("/api/lab/reset")
 def lab_reset(request: Request) -> dict:
     reset_lab(_lab_id(request))
@@ -300,6 +329,25 @@ def restore_lab(lab_id: str) -> dict:
         return {"error": "Lab not found."}
     activate_custom_lab(stored["briefing"], lab_id=lab_id)
     return {"ok": True, "lab_id": lab_id, "company": stored.get("company")}
+
+
+@app.get("/api/integrations")
+def integrations() -> dict:
+    """Catalog of optional product hooks. None of these pull live ads."""
+    return {
+        "mode": "simulator",
+        "live_ads": False,
+        "integrations": [
+            {"id": "meta", "name": "Meta Ads", "wired": False, "now": "Paste spend/impressions to rescale waste."},
+            {"id": "google", "name": "Google Ads", "wired": False, "now": "Paste spend/impressions to rescale waste."},
+            {"id": "linkedin", "name": "LinkedIn Ads", "wired": False, "now": "Paste spend/impressions to rescale waste."},
+            {"id": "share", "name": "Team login / share", "wired": True, "now": "Copy a ?lab= link for this session."},
+            {"id": "dashboard", "name": "Dashboard", "wired": False, "now": "Three-step score strip is the dashboard."},
+            {"id": "agents", "name": "Extra agents", "wired": False, "now": "Sampler, Optimizer, shoppers, Critic only."},
+            {"id": "chat", "name": "Chatbot", "wired": False, "now": "Edit the brief and re-run."},
+            {"id": "round4", "name": "Round 4", "wired": False, "now": "Three steps stay the product."},
+        ],
+    }
 
 
 @app.get("/api/lab/play")

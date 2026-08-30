@@ -7,6 +7,7 @@ When a live model is present it names the audience; there is no industry lookup 
 
 from __future__ import annotations
 
+import random
 import re
 
 from app.llm import CacheFallback, chat_json, live_key_present, use_cache_requested
@@ -215,6 +216,7 @@ def assemble_briefing(brief: str, parsed_price: str | None, llm: dict | None) ->
         )
 
     audience = _audience(brief, llm)
+    audience = _apply_who_clauses(brief, audience)
     leak_role, llm = _scrub_factory_bleed(brief, llm, audience)
     leak_role = str(leak_role or audience["leak_role"])
     leak_role = re.sub(r"[^a-z0-9_]+", "_", leak_role.lower()).strip("_") or "window_shopper"
@@ -261,7 +263,7 @@ def assemble_briefing(brief: str, parsed_price: str | None, llm: dict | None) ->
         ),
     )
 
-    personas = _shoppers(brief, llm, audience, leak_role, product)
+    personas = _shoppers(brief, llm, audience, leak_role, product, company)
     reasoning = ""
     if llm:
         reasoning = str(llm.get("reasoning") or "").strip()
@@ -283,6 +285,7 @@ def assemble_briefing(brief: str, parsed_price: str | None, llm: dict | None) ->
         "campaign": campaign,
         "reasoning": reasoning,
         "proof": _proof_line(brief, company),
+        "cta": infer_cta(brief, product),
         "interpreted_by": "llm" if llm else "offline",
     }
 
@@ -464,7 +467,93 @@ def _clause_end(who: str) -> str:
     return who.strip(" .,;:—-")
 
 
+_CUSTOM_NAMES = (
+    "Samira",
+    "Kenji",
+    "Elena",
+    "Tomas",
+    "Nia",
+    "Haruto",
+    "Lila",
+    "Omar",
+    "Ines",
+    "Diego",
+    "Asha",
+    "Ravi",
+    "Sofi",
+    "Marek",
+    "Yara",
+    "Luca",
+    "Noor",
+    "Pavel",
+    "Chioma",
+    "Hugo",
+)
+
+_DEMO_TELL_NAMES = {
+    "priya",
+    "owen",
+    "mina",
+    "klaus",
+    "anika",
+    "mateo",
+    "jules",
+    "alex",
+    "lena",
+}
+
+
+def _parse_who_clauses(brief: str) -> dict:
+    buyer = None
+    leak = None
+    match = re.search(r"\bbuyers?:\s*([^.;\n]+)", brief, re.I)
+    if match:
+        buyer = match.group(1).strip()[:80]
+    match = re.search(r"\bleak:\s*([^.;\n]+)", brief, re.I)
+    if match:
+        leak = match.group(1).strip()[:80]
+    if not leak:
+        match = re.search(r"\bwrong[- ]eyes:\s*([^.;\n]+)", brief, re.I)
+        if match:
+            leak = match.group(1).strip()[:80]
+    return {"buyer_phrase": buyer, "leak_phrase": leak}
+
+
+def _apply_who_clauses(brief: str, audience: dict) -> dict:
+    clauses = _parse_who_clauses(brief)
+    patched = dict(audience)
+    if clauses.get("buyer_phrase"):
+        patched["label"] = clauses["buyer_phrase"]
+        patched["titles"] = _buyer_titles(patched["label"])
+        roles = _roles_from_who(clauses["buyer_phrase"])
+        if roles:
+            patched["roles"] = roles
+    if clauses.get("leak_phrase"):
+        patched["leak_role"] = _slug(clauses["leak_phrase"]) or "window_shopper"
+        patched["leak_title"] = clauses["leak_phrase"]
+    return patched
+
+
+def _shopper_names(company: str, audience: str) -> list[str]:
+    rng = random.Random(f"{company.lower()}|{audience.lower()}")
+    pool = list(_CUSTOM_NAMES)
+    rng.shuffle(pool)
+    return pool[:4]
+
+
+def _clean_person_name(name: str, fallback: str, brief: str) -> str:
+    cleaned = str(name or "").strip()
+    if not cleaned:
+        return fallback
+    if cleaned.lower() in _DEMO_TELL_NAMES and not _factory_brief(brief):
+        return fallback
+    return cleaned[:40]
+
+
 def _who_from_brief(brief: str) -> str:
+    clauses = _parse_who_clauses(brief)
+    if clauses.get("buyer_phrase") and len(clauses["buyer_phrase"]) >= 4:
+        return clauses["buyer_phrase"][:80]
     match = re.search(r"\baudience(?:\s+includes|\s+is|:)?\s+(.+)", brief, re.I)
     if match:
         who = _clause_end(match.group(1))
@@ -600,40 +689,51 @@ def _shoppers(
     audience: dict,
     leak_role: str,
     product: str,
+    company: str = "",
 ) -> list[dict]:
-    objections = ("proof", "price", "ranking")
+    names = _shopper_names(company or "campaign", audience.get("label") or "buyers")
+    job_titles = audience.get("titles") or _buyer_titles(audience["label"])
+    while len(job_titles) < 3:
+        job_titles.append(job_titles[-1] if job_titles else "Intended buyer")
+    angles = (
+        (f"{job_titles[0]} · wants a real number, not a slogan", "proof", "hates slogans without numbers"),
+        (f"{job_titles[1]} · will not click without a price", "price", "will not click when the price is missing"),
+        (f"{job_titles[2]} · rejects unsourced ranking", "ranking", "rejects unsourced ranking claims"),
+    )
     buyers = []
     llm_buyers = list((llm or {}).get("buyers") or [])
-    fallback_names = ("Priya", "Owen", "Mina")
-    for index, objection in enumerate(objections):
+    for index, (fallback_title, objection, trait) in enumerate(angles):
         row = llm_buyers[index] if index < len(llm_buyers) else {}
-        name = str(row.get("name") or fallback_names[index])
-        title = str(row.get("title") or (audience.get("titles") or ["Intended buyer"] * 3)[index])
+        title = str(row.get("title") or "").strip() or fallback_title
+        if not _factory_brief(brief) and _NORTHLINE_VOICE.search(title):
+            title = fallback_title
         buyers.append(
             {
                 "id": f"buyer_{objection}",
-                "name": name,
+                "name": _clean_person_name(row.get("name"), names[index], brief),
                 "segment": audience["roles"][0] if audience["roles"] else "buyer",
                 "title": title,
                 "audience_label": audience["label"],
                 "product": product,
                 "is_icp": True,
                 "objection": objection,
-                "trait": {
-                    "proof": "hates slogans without numbers",
-                    "price": "will not click when the price is missing",
-                    "ranking": "rejects unsourced ranking claims",
-                }[objection],
+                "trait": trait,
             }
         )
     leak_row = (llm or {}).get("leak") or {}
-    leak_name = str(leak_row.get("name") or "Alex")
+    leak_title = str(
+        leak_row.get("title")
+        or audience.get("leak_title")
+        or f"Not {audience['label'][:40]} — would click and never buy"
+    )
+    if not _factory_brief(brief) and _NORTHLINE_VOICE.search(leak_title):
+        leak_title = f"Not {audience['label'][:40]} — would click and never buy"
     buyers.append(
         {
             "id": "leak",
-            "name": leak_name,
+            "name": _clean_person_name(leak_row.get("name"), names[3], brief),
             "segment": leak_role,
-            "title": str(leak_row.get("title") or audience.get("leak_title") or "Not a buyer"),
+            "title": leak_title,
             "audience_label": audience["label"],
             "product": product,
             "is_icp": False,
@@ -649,3 +749,19 @@ def _proof_line(brief: str, company: str) -> str:
     if match:
         return match.group(0).strip().rstrip(".")
     return f"A concrete number for {company} — not a ranking claim."
+
+
+def infer_cta(brief: str, product: str = "") -> str:
+    """CTA that fits the offer. Northline-style B2B stays Book a demo."""
+    blob = f"{brief} {product}".lower()
+    if re.search(r"\bwhitening\b|\bdentists?\b|\bdental\b|\bclinic\b|\bappointment\b", blob):
+        return "Book an appointment"
+    if re.search(r"\bmugs?\b|\bhandmade\b|\bfloral\b|\bflowers?\b|\bgifts?\b", blob):
+        return "Shop now"
+    if re.search(r"\btutor|\bcourse\b|\benroll\b|\bgcse\b", blob):
+        return "Enroll"
+    if re.search(r"\bgym\b|\bmembership\b", blob):
+        return "Book a class"
+    if re.search(r"\bcafe\b|\bcoffee\b|\bwholesale\b", blob):
+        return "Request a sample"
+    return "Book a demo"

@@ -61,7 +61,12 @@ def _cached_copy(campaign: Campaign, cached_campaign: Campaign) -> Campaign:
     )
 
 
-def _copy_prompt(campaign: Campaign, required_price: str = FIXED_PRICE, proof: str = FIXED_PROOF) -> str:
+def _copy_prompt(
+    campaign: Campaign,
+    required_price: str = FIXED_PRICE,
+    proof: str = FIXED_PROOF,
+    required_cta: str = FIXED_CTA,
+) -> str:
     product = (campaign.page.body or campaign.ad.body or campaign.company).strip()[:240]
     return (
         "{\n"
@@ -69,17 +74,17 @@ def _copy_prompt(campaign: Campaign, required_price: str = FIXED_PRICE, proof: s
         f'  "product": {product!r},\n'
         "  \"requirements\": {\n"
         f'    "page_price": {required_price!r},\n'
-        f'    "ad_cta": {FIXED_CTA!r},\n'
-        f'    "page_cta": {FIXED_CTA!r},\n'
+        f'    "ad_cta": {required_cta!r},\n'
+        f'    "page_cta": {required_cta!r},\n'
         '    "forbidden_claims": ["#1", "best in the world"],\n'
         f'    "proof": {proof!r}\n'
         "  },\n"
         "  \"schema\": {\n"
-        '    "ad": {"headline": "string", "body": "string", "cta": "Book a demo"},\n'
+        f'    "ad": {{"headline": "string", "body": "string", "cta": {required_cta!r}}},\n'
         "    \"page\": {\n"
         '      "headline": "string", "body": "string",\n'
         '      "bullets": ["string", "string", "string"],\n'
-        f'      "proof": {proof!r}, "cta": "Book a demo", "price": {required_price!r}\n'
+        f'      "proof": {proof!r}, "cta": {required_cta!r}, "price": {required_price!r}\n'
         "    },\n"
         '    "email": {"subject": "string", "body": "string"}\n'
         "  }\n"
@@ -94,14 +99,16 @@ def rewrite_copy(
     allow_fixture: bool = True,
     required_price: str = FIXED_PRICE,
     proof_line: str | None = None,
+    required_cta: str = FIXED_CTA,
 ) -> tuple[Campaign, str | None, int]:
     """Optimizer tool: rewrite ad + page. Live path never silently pastes a fixture."""
     proof = proof_line or FIXED_PROOF
+    cta = required_cta or FIXED_CTA
     offline = use_cache or use_cache_requested() or not live_key_present()
     if offline and allow_fixture and cached_campaign is not None:
         return _cached_copy(campaign, cached_campaign), None, 1
     if offline and not allow_fixture:
-        repaired = _deterministic_repair(campaign, required_price, proof)
+        repaired = _deterministic_repair(campaign, required_price, proof, cta)
         return repaired, None, 1
 
     last_error = "Optimizer: rewrite_copy returned nothing."
@@ -110,13 +117,13 @@ def rewrite_copy(
         attempts += 1
         try:
             result = chat_json(
-                "Improve copy only. Return JSON only. Never change targeting or company. Use the required price exactly.",
-                _copy_prompt(campaign, required_price, proof),
+                "Improve copy only. Return JSON only. Never change targeting or company. Use the required price and CTA exactly.",
+                _copy_prompt(campaign, required_price, proof, cta),
                 use_cache=False,
             )
             ad = Creative.model_validate(result["ad"])
             page = LandingPage.model_validate(result["page"])
-            _validate_copy(ad, page, required_price)
+            _validate_copy(ad, page, required_price, cta)
             updates: dict = {"ad": ad, "page": page}
             if result.get("email"):
                 updates["email"] = Email.model_validate(result["email"])
@@ -129,7 +136,7 @@ def rewrite_copy(
 
     if allow_fixture and cached_campaign is not None:
         return _cached_copy(campaign, cached_campaign), None, attempts or 1
-    repaired = _deterministic_repair(campaign, required_price, proof)
+    repaired = _deterministic_repair(campaign, required_price, proof, cta)
     return (
         repaired,
         last_error.replace(" Retrying.", "") + " Applied a validated repair so the lab can show right words.",
@@ -137,12 +144,18 @@ def rewrite_copy(
     )
 
 
-def _deterministic_repair(campaign: Campaign, required_price: str, proof: str = FIXED_PROOF) -> Campaign:
+def _deterministic_repair(
+    campaign: Campaign,
+    required_price: str,
+    proof: str = FIXED_PROOF,
+    required_cta: str = FIXED_CTA,
+) -> Campaign:
     name = campaign.company
+    cta = required_cta or FIXED_CTA
     ad = Creative(
         headline=f"See the outcome before the next review — {name}",
         body=f"{name} for the buyer who should actually pay. {required_price}. No unsourced ranking.",
-        cta=FIXED_CTA,
+        cta=cta,
     )
     page = LandingPage(
         headline=f"{name}: what it does, what it costs",
@@ -150,22 +163,27 @@ def _deterministic_repair(campaign: Campaign, required_price: str, proof: str = 
         bullets=[
             "Who it is for, in one line",
             "What you see in the first session",
-            "A number on the page before you book",
+            "A number on the page before you act",
         ],
         proof=proof,
         highlight="Price and proof, not a ranking claim.",
-        cta=FIXED_CTA,
+        cta=cta,
         price=required_price,
     )
     email = Email(
         subject=f"15 min on {name}",
         body=f"Hi,\n\n{required_price}. I can walk the offer without the ranking language.\n",
     )
-    _validate_copy(ad, page, required_price)
+    _validate_copy(ad, page, required_price, cta)
     return campaign.model_copy(update={"ad": ad, "page": page, "email": email}, deep=True)
 
 
-def _validate_copy(ad: Creative, page: LandingPage, required_price: str = FIXED_PRICE) -> None:
+def _validate_copy(
+    ad: Creative,
+    page: LandingPage,
+    required_price: str = FIXED_PRICE,
+    required_cta: str = FIXED_CTA,
+) -> None:
     copy = " ".join(
         (ad.headline, ad.body, page.headline, page.body)
         + tuple(page.bullets)
@@ -174,5 +192,5 @@ def _validate_copy(ad: Creative, page: LandingPage, required_price: str = FIXED_
         raise ValueError("Copy contains an unsourced ranking claim")
     if page.price != required_price:
         raise ValueError("Page price is invalid")
-    if ad.cta != FIXED_CTA or page.cta != FIXED_CTA:
+    if ad.cta != required_cta or page.cta != required_cta:
         raise ValueError("Campaign CTA is invalid")
