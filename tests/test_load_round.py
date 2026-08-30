@@ -39,11 +39,16 @@ def test_round_one_keys():
     assert "agent_feed" in data
     assert "agent_turns" in data
     assert "chapter" in data
+    assert "llm" in data
+    assert data["llm"]["mode"] in {"live", "cached", "rate_limited"}
     assert data["chapter"]["eyes"] == "Wrong eyes"
     assert data["chapter"]["words"] == "Wrong words"
     assert "waste" in data
     assert data["waste"]["wasted_spend"] == 4.8
     assert data["waste"]["off_icp"] == 48
+    assert "benchmark" in data
+    assert data["benchmark"]["decision"] == "iterate"
+    assert data["benchmark"]["passed"] is False
 
 
 def test_round_one_accuracy_is_40():
@@ -162,6 +167,9 @@ def test_round_three_chapter_is_right_eyes_right_words():
     assert data["icp_purchase_rate"] == "3/3"
     assert data["optimizer_iterations"] >= 1
     assert data["waste"]["wasted_spend"] == 1.2
+    assert data["benchmark"]["decision"] == "ship"
+    assert data["benchmark"]["passed"] is True
+    assert data["benchmark"]["score"] >= 80
 
 
 def test_extract_price_from_brief():

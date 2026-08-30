@@ -546,6 +546,18 @@
       }
     }
 
+    function applyLlmBadge(data) {
+      if (data && data.llm) setBadgeMode(data.llm);
+      const err = String((data && data.optimizer_error) || '');
+      if (/429|rate-?limit/i.test(err)) {
+        setBadgeMode({
+          live: true,
+          rate_limited: true,
+          model: (data.llm && data.llm.model) || ''
+        });
+      }
+    }
+
     function personTitle(p) {
       const titles = {
         klaus: 'Plant manager · NRW',
@@ -887,13 +899,24 @@
       const purchase = String(data.icp_purchase_rate || '0/3');
       const [buyers, possible] = purchase.split('/').map(Number);
       const waste = data.waste || {};
-      const score = Math.round((accuracy * 0.55) + ((possible ? buyers / possible : 0) * 45));
+      const bench = data.benchmark;
+      const score = bench
+        ? Number(bench.score || 0)
+        : Math.round((accuracy * 0.55) + ((possible ? buyers / possible : 0) * 45));
       const reached = (data.personas || []).filter((p) => p.reached).length;
       const engaged = (data.personas || []).filter((p) => p.reached && p.would_click).length;
       const scoreEl = document.getElementById('dashboard-score');
       const scoreNote = document.getElementById('dashboard-score-note');
-      if (scoreEl) scoreEl.textContent = `${score}/100`;
-      if (scoreNote) scoreNote.textContent = score >= 80 ? 'Passing this lab' : score >= 55 ? 'Needs the next step' : 'Leaky campaign';
+      if (scoreEl) scoreEl.textContent = `${Math.round(score)}/100`;
+      if (scoreNote) {
+        if (bench) {
+          scoreNote.textContent = bench.passed
+            ? ('Ship · ' + (bench.version || 'campaign-fitness-v1'))
+            : ('Iterate · ' + (bench.next_action || 'needs the next step'));
+        } else {
+          scoreNote.textContent = score >= 80 ? 'Passing this lab' : score >= 55 ? 'Needs the next step' : 'Leaky campaign';
+        }
+      }
       const accuracyEl = document.getElementById('dashboard-accuracy');
       const purchaseEl = document.getElementById('dashboard-purchase');
       const wasteEl = document.getElementById('dashboard-waste');
@@ -953,15 +976,16 @@
           nextCopy.textContent = leak + ' is out. Same words still fail — run Step 3 to give ' + audience + ' a reason to click.';
         } else {
           const cta = (data.briefing && data.briefing.cta) || (data.campaign && data.campaign.ad && data.campaign.ad.cta) || 'the CTA';
-          nextTitle.textContent = score >= 80 ? 'Export the write-up' : 'Review the rewrite';
-          nextCopy.textContent = score >= 80
+          nextTitle.textContent = (bench && bench.passed) || score >= 80 ? 'Export the write-up' : 'Review the rewrite';
+          nextCopy.textContent = (bench && bench.passed) || score >= 80
             ? ('Targeting and copy both pass this lab. CTA is “' + cta + '”. Export campaign.md — ads stay simulated.')
-            : 'Review the agent recommendations before you treat this as a pass.';
+            : ((bench && bench.next_action) || 'Review the agent recommendations before you treat this as a pass.');
         }
       }
     }
 
     function render(data) {
+      applyLlmBadge(data);
       const r = data.round || 0;
       const c = data.campaign;
       const accuracy = Math.round(data.targeting_accuracy || 0);

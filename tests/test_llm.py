@@ -15,6 +15,16 @@ def test_retry_after_defaults_when_missing():
     assert _retry_after_seconds(error) == 30.0
 
 
+def test_quota_reason_credits_vs_generic_429():
+    from app.llm import _quota_reason
+
+    assert "prepaid credits" in _quota_reason(
+        429,
+        '{"error":{"message":"Your prepayment credits are depleted."}}',
+    )
+    assert _quota_reason(429, '{"error":{"status":"RESOURCE_EXHAUSTED"}}') == "LLM HTTP 429"
+
+
 def test_llm_status_has_rate_limited_and_model():
     status = llm_status()
     assert "live" in status

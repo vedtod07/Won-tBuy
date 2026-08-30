@@ -14,8 +14,9 @@ from app.agents.critic import cached_critic_summary, critic_summary
 from app.agents.optimizer import rewrite_copy, tighten_targeting
 from app.agents.personas import cached_verdict, evaluate_shopper
 from app.agents.tools import campaign_as_dict, run_sampler, shopper_is_reached
+from app.benchmark import campaign_fitness
 from app.impressions import apply_economics, wasted_spend
-from app.llm import CacheFallback, chat_json, last_call_meta, live_key_present, use_cache_requested
+from app.llm import CacheFallback, chat_json, last_call_meta, live_key_present, llm_status, use_cache_requested
 from app.models import Campaign
 
 
@@ -576,6 +577,11 @@ def _finalize(result: dict, meta: dict) -> dict:
         result.get("waste") or wasted_spend(result.get("impressions") or []),
         meta.get("economics"),
     )
+    fitness = campaign_fitness(
+        result["campaign"],
+        result["targeting_accuracy"],
+        personas,
+    )
     return {
         "round": meta["round_number"],
         "mode": "simulated",
@@ -587,11 +593,13 @@ def _finalize(result: dict, meta: dict) -> dict:
         "targeting_accuracy": result["targeting_accuracy"],
         "waste": waste,
         "icp_purchase_rate": purchase,
+        "benchmark": fitness,
         "critic_summary": result["critic_summary"],
         "agent_feed": feed,
         "agent_turns": turns,
         "optimizer_error": result.get("optimizer_error"),
         "optimizer_iterations": result.get("optimizer_iterations") or 0,
+        "llm": llm_status(),
         "briefing": {
             "company": company,
             "price": meta["price"],

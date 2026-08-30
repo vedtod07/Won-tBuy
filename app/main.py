@@ -122,6 +122,7 @@ def build_compare(rounds: list[dict]) -> dict:
             "accuracy": [(row or {}).get("targeting_accuracy") for row in (r1, r2, r3)],
             "purchase": [(row or {}).get("icp_purchase_rate") for row in (r1, r2, r3)],
             "waste": [(row or {}).get("waste") for row in (r1, r2, r3)],
+            "fitness": [(row or {}).get("benchmark") for row in (r1, r2, r3)],
         },
     }
 
@@ -179,6 +180,14 @@ def build_campaign_markdown() -> str:
                 f"- Wasted spend: €{waste.get('wasted_spend', 0):.2f} "
                 f"({waste.get('off_icp', 0)} off-ICP of {waste.get('impressions', 0)})"
             )
+        fitness = data.get("benchmark") or {}
+        if fitness:
+            lines.append(
+                f"- Campaign fitness: {fitness.get('score')}/100 "
+                f"({fitness.get('decision')}, {fitness.get('version')})"
+            )
+            if fitness.get("next_action"):
+                lines.append(f"- Next: {fitness['next_action']}")
         if data.get("critic_summary"):
             lines.append(f"- Critic: {data['critic_summary']}")
         lines.append("")

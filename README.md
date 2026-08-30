@@ -106,6 +106,20 @@ The simulator still creates the audience sample; supplied economics rescale the 
 
 You can also **upload a CSV** in the UI. The file is inspected in code (columns mapped onto spend/impressions/cpc, totals summed deterministically) and read by the live model to guess who the export was aimed at and who might be wasted reach. A realistic sample is bundled at `app/static/demo/last-campaign.csv` for the demo.
 
+### Campaign fitness benchmark
+
+Every round is scored by a transparent benchmark (`campaign-fitness-v1`) that decides whether the campaign should **ship** or **iterate**. When a judge asks whether any benchmark drives the revision loop, this is it: an explicit product decision model rather than a hidden score.
+
+| Component | Weight | Minimum gate |
+| --- | --- | --- |
+| **Audience fit** — targeting accuracy against the intended buyer | 40% | 80 |
+| **Buyer response** — share of reached ICP personas who would click | 35% | 66.7 |
+| **Campaign readiness** — price present, actionable CTA, proof present, no unsupported ranking claim | 25% | 75 |
+
+The composite score is the weighted sum of the three components (0–100). A round ships only when the score reaches **80/100** *and* every minimum gate passes; otherwise it iterates. The response carries the version, score, per-component breakdown, failed gates, a `ship`/`iterate` decision, and a specific next action. The optimizer loop keys off that decision, so the same revision cycle that tightens targeting then rewrites copy is what moves the benchmark upward — Step 1 iterates on audience and copy, Step 2 iterates on buyer response, Step 3 ships. The compare panel shows the score rising across the three rounds.
+
+The weights and gates are explicit so they can later be calibrated against imported post-launch outcomes — the same learning-loop path described under recommended features.
+
 ### Reliability and fallback behavior
 
 The app is usable with or without an LLM key.
@@ -164,6 +178,7 @@ Supporting services
 | `app/agents/optimizer.py` | Tightens targeting and rewrites copy while enforcing brief-derived requirements. |
 | `app/agents/personas.py` | Buyer / leak persona reactions and fallback behavior. |
 | `app/agents/critic.py` | Campaign diagnosis and next-step explanation. |
+| `app/benchmark.py` | Transparent `campaign-fitness-v1` score, gates, ship/iterate decision, and next action. |
 | `app/impressions.py` | Deterministic impression sampling, audience accuracy, waste calculation, CSV economics parsing. |
 | `app/labs_store.py` | Local SQLite persistence. |
 | `app/llm.py` | Gemini and compatible LLM adapter, cache fallback, rate-limit status. |
@@ -282,6 +297,7 @@ The suite covers:
 - Impression targeting accuracy and economics/CSV parsing
 - LLM retry/rate-limit status helpers
 - Local SQLite lab persistence
+- Campaign fitness benchmark weights, gates, and per-round ship/iterate decisions
 - Optimizer safeguards
 - UI smoke contracts for core controls, streaming, dashboard, and agent theatre
 

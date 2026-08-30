@@ -130,14 +130,24 @@ def chat_json(system: str, user: str, use_cache: bool = False) -> dict:
             })
             raise
         except HTTPError as error:
+            body = ""
+            try:
+                body = error.read().decode("utf-8", errors="replace")
+            except Exception:
+                body = ""
             if error.code == 429:
                 retry_after = _retry_after_seconds(error)
                 _mark_rate_limited(retry_after)
                 # Retry only when the server promises a short cooldown. The
                 # free tier returns tens of seconds, so a retry would always
                 # fail again — fall back instantly instead of freezing a demo
-                # on multi-second sleeps.
-                if retry_after <= MAX_BACKOFF_SECONDS and not was_limited and attempt < MAX_RETRIES:
+                # on multi-second sleeps. Billing/credit 429s also skip retry.
+                if (
+                    retry_after <= MAX_BACKOFF_SECONDS
+                    and not was_limited
+                    and attempt < MAX_RETRIES
+                    and "credit" not in body.lower()
+                ):
                     attempt += 1
                     time.sleep(retry_after)
                     continue
@@ -146,7 +156,7 @@ def chat_json(system: str, user: str, use_cache: bool = False) -> dict:
                 "latency_ms": int((time.perf_counter() - started) * 1000),
                 "model": "cache",
             })
-            raise CacheFallback(f"LLM HTTP {error.code}") from error
+            raise CacheFallback(_quota_reason(error.code, body)) from error
         except (URLError, TimeoutError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
             _last_call.update({
                 "live_or_cache": "cache",
@@ -164,6 +174,15 @@ def _retry_after_seconds(error: HTTPError) -> float:
     except ValueError:
         pass
     return 30.0
+
+
+def _quota_reason(code: int, body: str) -> str:
+    lowered = (body or "").lower()
+    if "prepayment credits are depleted" in lowered or "credits are depleted" in lowered:
+        return "LLM HTTP 429: prepaid credits depleted — add credit in AI Studio"
+    if "free_tier" in lowered or "free tier" in lowered:
+        return "LLM HTTP 429: free-tier quota exhausted"
+    return f"LLM HTTP {code}"
 
 
 def _gemini_chat_json(api_key: str, system: str, user: str) -> dict:

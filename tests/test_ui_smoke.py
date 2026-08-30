@@ -20,6 +20,7 @@ def test_dashboard_has_waste_compare_and_play():
     assert "/api/round/${roundNumber}/stream" in HTML
     assert "X-Lab-Id" in HTML
     assert "Rate-limited → cached" in HTML
+    assert "function applyLlmBadge" in HTML
     assert 'id="integrations-panel"' in HTML
     assert 'id="integ-meta"' in HTML
     assert 'id="integ-google"' in HTML
@@ -41,6 +42,7 @@ def test_dashboard_has_waste_compare_and_play():
     assert 'id="login-form"' in HTML
     assert 'id="lab-view"' in HTML
     assert 'id="marketing-dashboard"' in HTML
+    assert "data.benchmark" in HTML
     assert 'id="funnel-reach"' in HTML
     assert 'id="details-custom"' in HTML
     assert 'id="brief-form"' in HTML
