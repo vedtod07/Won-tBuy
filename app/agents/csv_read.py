@@ -6,7 +6,7 @@ import csv
 import io
 
 from app.impressions import inspect_campaign_csv
-from app.llm import CacheFallback, chat_json, last_call_meta, live_key_present, use_cache_requested
+from app.llm import CacheFallback, chat_json, last_call_meta, live_key_present, rate_limited, use_cache_requested
 
 _SYSTEM = (
     "You read one paid-ads CSV export for a simulated marketing lab. Return JSON only. "
@@ -41,18 +41,24 @@ def interpret_campaign_csv(text: str, use_cache: bool = False) -> dict:
             report = remapped
     report["interpreted_by"] = "llm" if payload else "offline"
     report["read"] = _read_from_payload(payload) if payload else {}
+    meta = last_call_meta()
     if payload:
         reasoning = str(payload.get("reasoning") or "").strip()
         report["reasoning"] = reasoning or _offline_reasoning(report)
-        meta = last_call_meta()
         report["model"] = meta.get("model")
         report["live_or_cache"] = meta.get("live_or_cache")
         report["latency_ms"] = meta.get("latency_ms")
     else:
-        report["reasoning"] = _offline_reasoning(report)
+        if live and rate_limited():
+            report["reasoning"] = (
+                "Live model is rate-limited this run — I mapped columns in code. "
+                "Totals are from the file, not invented. The 80-impression mix does not change."
+            )
+        else:
+            report["reasoning"] = _offline_reasoning(report)
         report["model"] = "cache"
         report["live_or_cache"] = "cache"
-        report["latency_ms"] = 0
+        report["latency_ms"] = int(meta.get("latency_ms") or 0)
     return report
 
 

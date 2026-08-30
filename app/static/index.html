@@ -78,37 +78,9 @@
         <button type="button" id="export-btn" class="export-btn">Export campaign.md</button>
         <button type="button" id="open-brief-btn" class="export-btn">Custom brief</button>
         <button type="button" id="open-audience-btn" class="export-btn">Audience builder</button>
+        <button type="button" id="open-numbers-btn" class="export-btn">Campaign numbers</button>
       </div>
 
-    <details id="details-numbers">
-      <summary>
-        <span>Paste last campaign numbers</span>
-        <span style="font-size: 0.8rem; color: var(--muted);">A live key reads the export — totals stay summed in code</span>
-      </summary>
-      <div class="details-content">
-        <form id="numbers-form" class="brief-form">
-          <label for="num-csv-file">Upload campaign CSV</label>
-          <input id="num-csv-file" type="file" accept=".csv,text/csv">
-          <div class="brief-actions" style="display:flex;gap:.4rem;flex-wrap:wrap;">
-            <button type="button" id="csv-demo-btn" class="export-btn" style="width:auto;">Load demo CSV</button>
-            <button type="button" id="csv-preview-btn" class="export-btn" style="width:auto;">Preview</button>
-          </div>
-          <div id="csv-preview" class="csv-preview" hidden></div>
-          <label for="num-spend">Spend</label>
-          <input id="num-spend" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 1200">
-          <label for="num-impr">Impressions</label>
-          <input id="num-impr" class="brief-textarea" style="min-height:0;" type="number" min="1" step="1" placeholder="e.g. 8000">
-          <label for="num-cpc">Or CPC / cost per impression</label>
-          <input id="num-cpc" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 0.15">
-          <label for="num-csv">Or paste CSV (spend, impressions, cpc)</label>
-          <textarea id="num-csv" class="brief-textarea" placeholder="spend,impressions&#10;1200,8000"></textarea>
-          <div class="brief-actions">
-            <button type="submit" id="numbers-submit-btn" class="cta-button" style="width:auto;">Apply numbers</button>
-          </div>
-          <div id="numbers-status" class="brief-sample"></div>
-        </form>
-      </div>
-    </details>
       <div class="rail-kicker">Connect later</div>
     <section class="integrations-panel" id="integrations-panel">
       <div class="integrations-kicker">Optional · connect later</div>
@@ -166,6 +138,38 @@
         <span class="badge simulated">Simulated — not live ads</span>
       </div>
     </header>
+
+    <section class="brief-panel" aria-labelledby="numbers-title">
+      <details id="details-numbers">
+        <summary>
+          <span id="numbers-title">Last campaign numbers</span>
+          <span>Upload a CSV or type spend. A live key reads the export — totals stay summed in code. The 80-impression mix does not change.</span>
+        </summary>
+        <div class="details-content">
+          <form id="numbers-form" class="brief-form">
+            <label for="num-csv-file">Upload campaign CSV</label>
+            <input id="num-csv-file" type="file" accept=".csv,text/csv">
+            <div class="brief-actions" style="display:flex;gap:.4rem;flex-wrap:wrap;">
+              <button type="button" id="csv-demo-btn" class="export-btn" style="width:auto;">Load demo CSV</button>
+              <button type="button" id="csv-preview-btn" class="export-btn" style="width:auto;">Preview</button>
+            </div>
+            <div id="csv-preview" class="csv-preview" hidden></div>
+            <label for="num-spend">Spend</label>
+            <input id="num-spend" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 1200">
+            <label for="num-impr">Impressions</label>
+            <input id="num-impr" class="brief-textarea" style="min-height:0;" type="number" min="1" step="1" placeholder="e.g. 8000">
+            <label for="num-cpc">Or CPC / cost per impression</label>
+            <input id="num-cpc" class="brief-textarea" style="min-height:0;" type="number" min="0" step="0.01" placeholder="e.g. 0.15">
+            <label for="num-csv">Or paste CSV (spend, impressions, cpc)</label>
+            <textarea id="num-csv" class="brief-textarea" placeholder="spend,impressions&#10;1200,8000"></textarea>
+            <div class="brief-actions">
+              <button type="submit" id="numbers-submit-btn" class="cta-button" style="width:auto;">Apply numbers</button>
+            </div>
+            <div id="numbers-status" class="brief-sample"></div>
+          </form>
+        </div>
+      </details>
+    </section>
 
     <section class="brief-panel" aria-labelledby="custom-brief-title">
       <details id="details-custom" open>
@@ -1706,6 +1710,19 @@
           el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         const input = document.getElementById('aud-company');
+        if (input) input.focus();
+      });
+    }
+
+    const openNumbersBtn = document.getElementById('open-numbers-btn');
+    if (openNumbersBtn) {
+      openNumbersBtn.addEventListener('click', () => {
+        const el = document.getElementById('details-numbers');
+        if (el) {
+          el.open = true;
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        const input = document.getElementById('num-csv-file');
         if (input) input.focus();
       });
     }
